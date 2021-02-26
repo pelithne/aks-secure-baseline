@@ -50,21 +50,29 @@ You'll be using the [Azure Key Vault Provider for Secrets Store CSI driver](http
 1. Update placeholders with your specific deployment values.
 
    ```bash
-   sed -i "s/KEYVAULT_NAME/{$KEYVAULT_NAME}/" workload/akv-tls-provider.yaml
-   sed -i "s/KEYVAULT_TENANT/${TENANTID_AZURERBAC}/" workload/akv-tls-provider.yaml
+   cd workload
+
+   sed -i "s/KEYVAULT_NAME/{$KEYVAULT_NAME}/" ingress-controller/akv-tls-provider.yaml
+   sed -i "s/KEYVAULT_TENANT/${TENANTID_AZURERBAC}/" ingress-controller/akv-tls-provider.yaml
 
    git commit -a -m "Update SecretProviderClass to reference my ingress certificate."
    ```
 
-1. Update workload kustomization file to use images from your container registry.
+## Update workload manifests to use your Azure Container Registry
+
+The workload consists of Traefik and a small sample application. We need to ensure that the images will be loaded from your Azure Container Registry service.
+
+### Steps
+
+1. Update workload kustomization files.
 
    ```bash
    grep -lr REPLACE_ME_WITH_YOUR_ACRNAME --include=kustomization.yaml | xargs sed -i "s/REPLACE_ME_WITH_YOUR_ACRNAME/${ACR_NAME}/g"
 
-   git commit -a -m "Update workload to use images from my ACR instead of public container registries."
+   git commit -a -m "Update workload images to use my Azure Container Registry instance."
    ```
 
-1. Push this change to your repo.
+1. Push these two changes to your repo.
 
    ```bash
    git push
@@ -131,4 +139,4 @@ TODO: Do we have enough time to pull this out and configure it as such?
 
 ## Next step
 
-:arrow_forward: [Configure AKS Ingress Controller with Azure Key Vault integration](./13-secret-managment-and-ingress-controller.md)
+:arrow_forward: [Configure AKS Ingress Controller with Azure Key Vault integration](./13-secret-management-and-ingress-controller.md)

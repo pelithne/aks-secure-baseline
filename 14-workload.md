@@ -2,7 +2,7 @@
 
 TODO
 
-<!-- The cluster now has an [Traefik configured with a TLS certificate](./13-secret-managment-and-ingress-controller.md). The last step in the process is to deploy the workload, which will demonstrate the system's functions. -->
+<!-- The cluster now has an [Traefik configured with a TLS certificate](./13-secret-management-and-ingress-controller.md). The last step in the process is to deploy the workload, which will demonstrate the system's functions. -->
 
 ## Expected results
 
@@ -45,7 +45,10 @@ TODO: Consider returning a quarantine registry in the outputs of the arm templat
 1. _From your Azure Bastion connection_, deploy the sample workload to cluster.
 
    ```bash
-   kubectl apply -f workload/deploy.yaml
+   kubectl apply -k micrservice-web
+   kubectl apply -k micrservice-a
+   kubectl apply -k micrservice-b
+   kubectl apply -k micrservice-c
    ```
 
    All workloads would should be deployed via your pipeline agents. We're deploying by hand here simply to expedite the walkthrough; minimizing complexities with end-to-end functioning of this cluster.
@@ -53,8 +56,10 @@ TODO: Consider returning a quarantine registry in the outputs of the arm templat
 1. _From your Azure Bastion connection_, Wait until workload is ready to process requests
 
    ```bash
-   kubectl wait --namespace a0005 --for=condition=ready pod --selector=app.kubernetes.io/name=TODO --timeout=90s
+   TODO: FIGURE OUT A GOOD CONSOLIDATED CHECK
    ```
+
+--- STOPPED HERE ----
 
 <!--
 

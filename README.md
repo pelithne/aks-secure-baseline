@@ -85,7 +85,7 @@ We perform the prior steps manually here for you to understand the involved comp
 Without a workload deployed to the cluster it will be hard to see how these decisions come together to work as a reliable application platform for your business. The deployment of this workload would typically follow a CI/CD pattern and may involve even more advanced deployment strategies (blue/green, etc). The following steps represent a manual deployment, suitable for illustration purposes of this infrastructure.
 
 * [ ] Just like the cluster, there are [workload prerequisites to address](./10-workload-prerequisites.md)
-* [ ] [Configure AKS Ingress Controller with Azure Key Vault integration](./11-secret-managment-and-ingress-controller.md)
+* [ ] [Configure AKS Ingress Controller with Azure Key Vault integration](./13-secret-management-and-ingress-controller.md)
 * [ ] [Deploy the workload](./12-workload.md)
 
 ### 6. :checkered_flag: Validation
