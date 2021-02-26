@@ -26,27 +26,30 @@ Finally, this implementation uses a small custom application as an example workl
 
 #### Azure platform
 
-* AKS v1.19
+* AKS v1.20
   * System and User [node pool separation](https://docs.microsoft.com/azure/aks/use-system-pools)
   * [AKS-managed Azure AD](https://docs.microsoft.com/azure/aks/managed-aad)
-  * Managed Identities
+  * Managed Identities for kubelet and control plane
   * Azure CNI
   * [Azure Monitor for containers](https://docs.microsoft.com/azure/azure-monitor/insights/container-insights-overview)
   * Private Cluster
+  * [Azure AD Pod Identity](https://github.com/Azure/aad-pod-identity)
 * Azure Virtual Networks (hub-spoke)
   * Hub-proxied DNS
   * Azure Firewall managed egress
-* Azure Application Gateway (WAF)
+* Azure Application Gateway (WAF - OWASP 3.1)
 * AKS-managed Internal Load Balancers
 * Azure Bastion for maintenance access
+* Private Link enabled Key Vault and Azure Container Registry
+* Private Azure Container Registry Task Runners
 
 #### In-cluster Open-Source Software components
 
-* [Flux GitOps Operator](https://fluxcd.io)
+* [Flux 2 GitOps Operator](https://fluxcd.io)
 * [Traefik Ingress Controller](https://doc.traefik.io/traefik/v1.7/user-guide/kubernetes/)
-* [Azure AD Pod Identity](https://github.com/Azure/aad-pod-identity)
 * [Azure KeyVault Secret Store CSI Provider](https://github.com/Azure/secrets-store-csi-driver-provider-azure)
 * [Kured](https://docs.microsoft.com/azure/aks/node-updates-kured)
+* [Falco](https://falco.org)
 
 ![Network diagram depicting a hub-spoke network with two peered VNets, each with three subnets and main Azure resources.](https://docs.microsoft.com/azure/architecture/reference-architectures/containers/aks/images/secure-baseline-architecture.svg)
 
