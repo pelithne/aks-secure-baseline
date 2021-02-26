@@ -26,6 +26,10 @@ This is the starting point for the end-to-end instructions on deploying the [AKS
 
    Ensure you're logged into the subscription in which you plan on deploying this reference to.
 
+1. Enable preview features.
+
+   * Follow the instructions to [enable Azure AD Pod Identity](https://docs.microsoft.com/azure/aks/use-azure-ad-pod-identity#before-you-begin) on your target subscription. You do not need to install the preview CLI extension or follow other instructions on this page.
+
 1. Fork this repository and clone it locally.
 
    ```bash
