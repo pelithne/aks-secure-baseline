@@ -17,7 +17,7 @@ Once traffic hits Azure Application Gateway, public-facing TLS is terminated. Th
 
 ### Steps
 
-1. Give your user permissions to import certificates.
+1. Give your user permissions to import certificates into Key Vault.
 
    TODO: Can this be done via role assignment instead of policy.  I know we have policy in the ARM template, not sure if you can "mix and match..."
 
@@ -29,11 +29,11 @@ Once traffic hits Azure Application Gateway, public-facing TLS is terminated. Th
 1. Import the AKS Ingress Controller's certificate.
 
    ```bash
-   cat traefik-ingress-internal-aks-ingress-contoso-com-tls.crt traefik-ingress-internal-aks-ingress-contoso-com-tls.key > traefik-ingress-internal-aks-ingress-contoso-com-tls.pem
+   # Import the .pem file you created in a prior step as a Key Vault certificate.
    az keyvault certificate import -f traefik-ingress-internal-aks-ingress-contoso-com-tls.pem -n traefik-ingress-internal-aks-ingress-contoso-com-tls --vault-name $KEYVAULT_NAME
    ```
 
-1. Remove Azure Key Vault import certificates permissions for current user.
+1. Remove the import certificates permissions for current user.
 
    > The Azure Key Vault Policy for your user was a temporary policy to allow you to upload the certificate for this walkthrough. In actual deployments, you would manage these access policies via your ARM templates using [Azure RBAC for Key Vault data plane](https://docs.microsoft.com/azure/key-vault/general/secure-your-key-vault#data-plane-and-access-policies).
 
@@ -49,11 +49,9 @@ You'll be using the [Azure Key Vault Provider for Secrets Store CSI driver](http
 
 1. Update placeholders with your specific deployment values.
 
-   TODO: Replace these with proper values
-
    ```bash
-   sed -i "s/KEYVAULT_NAME/kv-aks-43tj3q6dr2mfq/" workload/akv-tls-provider.yaml
-   sed -i "s/KEYVAULT_TENANT/72f988bf-86f1-41af-91ab-2d7cd011db47/" workload/akv-tls-provider.yaml
+   sed -i "s/KEYVAULT_NAME/{$KEYVAULT_NAME}/" workload/akv-tls-provider.yaml
+   sed -i "s/KEYVAULT_TENANT/${TENANTID_AZURERBAC}/" workload/akv-tls-provider.yaml
 
    git commit -a -m "Update SecretProviderClass to reference my ingress certificate."
    ```

@@ -70,9 +70,9 @@ spec:
         - name: DEEPTH
           value: "1"
         - name: SELF_HOSTS_DEPENDENCIES
-          value: http://localhost
+          value: http://microservice-a-service.http://microservice-b-service,http://microservice-c-service
         - name: EXTERNAL_DEPENDENCIES
-          value: https://packages.microsoft.com
+          value: https://packages.microsoft.com,https://example.org
         - name: ASPNETCORE_URLS
           value: http://*:8080
       nodeSelector:

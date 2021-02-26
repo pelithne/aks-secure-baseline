@@ -38,6 +38,7 @@ Your github repo will be the source of truth for your cluster's configuration. T
 
    ```bash
    git push
+   cd ..
    ```
 
 1. Connect to a jump box node via Azure Bastion.
