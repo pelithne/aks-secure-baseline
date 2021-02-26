@@ -34,18 +34,26 @@ namespace SimpleChainApi.Controllers
         [Route("depth/{depth:int}")]
         public async Task<DependencyResult> GetAsync(int depth)
         {
-            var dependencyResult = new DependencyResult();
-            if (depth > 0)
+            try
             {
-                dependencyResult.URL = $"{Request.Scheme}://{Request.Host}{Request.Path}";
-                var client = _clientFactory.CreateClient();
+                var dependencyResult = new DependencyResult();
+                if (depth > 0)
+                {
+                    dependencyResult.URL = $"{Request.Scheme}://{Request.Host}{Request.Path}";
+                    var client = _clientFactory.CreateClient();
 
-                await ComputeExternalDependenciesAsync(client, dependencyResult);
+                    await ComputeExternalDependenciesAsync(client, dependencyResult);
 
-                await ComputeSelfDependenciesAsync(client, dependencyResult, depth);
+                    await ComputeSelfDependenciesAsync(client, dependencyResult, depth);
+                }
+
+                return dependencyResult;
             }
-
-            return dependencyResult;
+            catch (Exception ex)
+            {
+                _logger.LogError("Exception {ex}", ex);
+                throw;
+            }
         }
 
 
