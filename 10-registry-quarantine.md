@@ -42,7 +42,7 @@ Using a security agent that is container-aware and can operate from within the c
    # Get your Quarantine Azure Container Registry service name
    # You only deployed one ACR instance in this walkthrough, but this could be
    # a separate, dedicated quarantine instance managed by your IT team.
-   ACR_NAME_QUARANTINE=$(az deployment group show -g rg-bu0001a0005 -n cluster-stamp --query properties.outputs.containerRegistryName.value -o tsv)
+   ACR_NAME_QUARANTINE=$(az deployment group show -g rg-bu0001a0005 -n cluster-stamp --query properties.outputs.quarantineContainerRegistryName.value -o tsv)
    
    # [Combined this takes about two minutes.]
    az acr import --source ghcr.io/fluxcd/kustomize-controller:v0.8.1 -t quarantine/fluxcd/kustomize-controller:v0.8.1 -n $ACR_NAME_QUARANTINE

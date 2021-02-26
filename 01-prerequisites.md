@@ -29,7 +29,7 @@ This is the starting point for the end-to-end instructions on deploying the [AKS
 1. Fork this repository and clone it locally.
 
    ```bash
-   export GITHUB_ACCOUNT_NAME=REPLACE_ME_WITH_YOUR_GITHUBACCOUNTNAME
+   GITHUB_ACCOUNT_NAME=REPLACE_ME_WITH_YOUR_GITHUBACCOUNTNAME
 
    git clone https://github.com/${GITHUB_ACCOUNT_NAME}/aks-regulated-baseline.git
    cd aks-regulated-baseline
@@ -41,4 +41,4 @@ This is the starting point for the end-to-end instructions on deploying the [AKS
 
 ### Next step
 
-:arrow_forward: [Prep for Azure Active Directory integration](./03-aad.md).
+:arrow_forward: [Generate TLS Certificates](./02-ca-certificates.md).

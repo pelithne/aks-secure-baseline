@@ -14,7 +14,7 @@ spec:
       containers:
       - name: dummy-av
         image: busybox
-        args: [/bin/sh, -c, 'while true; do echo $(date); sleep 60; done']
+        args: [/bin/sh, -c, 'while true; do echo Placeholder AV: $(date); sleep 240; done']
         resources:
           limits:
             memory: "28Mi"

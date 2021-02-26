@@ -58,6 +58,14 @@ You'll be using the [Azure Key Vault Provider for Secrets Store CSI driver](http
    git commit -a -m "Update SecretProviderClass to reference my ingress certificate."
    ```
 
+1. Update workload kustomization file to use images from your container registry.
+
+   ```bash
+   grep -lr REPLACE_ME_WITH_YOUR_ACRNAME --include=kustomization.yaml | xargs sed -i "s/REPLACE_ME_WITH_YOUR_ACRNAME/${ACR_NAME}/g"
+
+   git commit -a -m "Update workload to use images from my ACR instead of public container registries."
+   ```
+
 1. Push this change to your repo.
 
    ```bash
@@ -106,7 +114,7 @@ TODO: Should we defer setting up real routes until this point?
 1. Quarantine your ingress controller image.
 
    ```bash
-   az acr import --source docker.io/library/traefik:2.4.5 -t quarantine/library/traefik:2.4.5 -n $ACR_NAME_QUARANTINE
+   az acr import --source docker.io/library/traefik:2.2.1 -t quarantine/library/traefik:2.2.1 -n $ACR_NAME_QUARANTINE
    ```
 
    In this case, for simplicity, we are using the single ACR instance that you deployed with your cluster. Workload teams may opt to use their own dedicated ACR instances, separate from the bootstrap instance. Consider your options here wrt Azure Policy validation, centralized view of container scanning, image signing concerns, geo-replication, cost, etc. The same level of protection for bootstrap images must be enforced for workload images as well.
@@ -114,7 +122,7 @@ TODO: Should we defer setting up real routes until this point?
 1. Release the ingress controller image from quarantine.
 
    ```bash
-   az acr import --source quarantine/library/traefik:2.4.5 -r $ACR_NAME_QUARANTINE -t live/library/traefik:2.4.5 -n $ACR_NAME
+   az acr import --source quarantine/library/traefik:2.2.1 -r $ACR_NAME_QUARANTINE -t live/library/traefik:2.2.1 -n $ACR_NAME
    ```
 
 ### Who manages the ingress controller

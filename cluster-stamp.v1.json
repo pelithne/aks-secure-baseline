@@ -1415,9 +1415,6 @@
                         "nodeLabels": {
                             "pci-scope": "in-scope"
                         },
-                        "nodeTaints": [
-                            "pci-scope=in-scope:NoExecute"
-                        ],
                         "tags": {
                             "pci-scope": "in-scope"
                         }
@@ -1451,9 +1448,6 @@
                         "nodeLabels": {
                             "pci-scope": "out-of-scope"
                         },
-                        "nodeTaints": [
-                            "pci-scope=out-of-scope:NoExecute"
-                        ],
                         "tags": {
                             "pci-scope": "out-of-scope"
                         }
@@ -1540,6 +1534,15 @@
                                 "resourceId": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'podmi-ingress-controller')]",
                                 "clientId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'podmi-ingress-controller')).clientId]",
                                 "objectId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'podmi-ingress-controller')).principalId]"
+                            }
+                        }
+                    ],
+                    "userAssignedIdentityExceptions": [
+                        {
+                            "name": "ignorekonnectivity",
+                            "namespace": "kube-system",
+                            "podLabels": {
+                                "app": "konnectivity-agent"
                             }
                         }
                     ]
@@ -2206,20 +2209,6 @@
                 "windowSize": "PT1M"
             }
         },
-        /*{
-            "type": "Microsoft.ManagedIdentity/userAssignedIdentities/providers/roleAssignments",
-            "name": "[concat('podmi-ingress-controller', '/Microsoft.Authorization/', guid(concat(resourceGroup().id), variables('managedIdentityOperatorRole')))]",
-            "apiVersion": "2018-09-01-preview",
-            "comments": "Grant the AKS cluster with Manage Identity Operator role permissions over the managed identity used for the ingress controller.  Allows it to be assigned to the underlying VMSS.",
-            "dependsOn": [
-                "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]"
-            ],
-            "properties": {
-                "roleDefinitionId": "[variables('managedIdentityOperatorRole')]",
-                "principalId": "[reference(resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName')), '2020-11-01').identityProfile.kubeletidentity.objectId]",
-                "principalType": "ServicePrincipal"
-            }
-        },*/
         {
             "type": "Microsoft.Authorization/policyAssignments",
             "apiVersion": "2020-03-01",
@@ -2369,19 +2358,15 @@
             "type": "string",
             "value": "[variables('agwName')]"
         },
-        "aksIngressControllerPodManagedIdentityResourceId": {
-            "type": "string",
-            "value": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'podmi-ingress-controller')]"
-        },
-        "aksIngressControllerPodManagedIdentityClientId": {
-            "type": "string",
-            "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities','podmi-ingress-controller'), '2018-11-30').clientId]"
-        },
         "keyVaultName": {
             "type": "string",
             "value": "[variables('keyVaultName')]"
         },
         "containerRegistryName": {
+            "type": "string",
+            "value": "[variables('defaultAcrName')]"
+        },
+        "quarantineContainerRegistryName": {
             "type": "string",
             "value": "[variables('defaultAcrName')]"
         }
