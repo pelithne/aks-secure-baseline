@@ -42,7 +42,7 @@ TODO: Consider returning a quarantine registry in the outputs of the arm templat
    az acr import --source quarantine/a0005/chain-api:1.0 -r $ACR_NAME_QUARANTINE -t live/a0005/chain-api:1.0 -n $ACR_NAME
    ```
 
-1. _From your Azure Bastion connection_, deploy the sample workload to cluster.
+1. _From your Azure Bastion connection_, deploy the sample workloads to cluster.
 
    ```bash
    kubectl apply -k micrservice-web
@@ -51,7 +51,7 @@ TODO: Consider returning a quarantine registry in the outputs of the arm templat
    kubectl apply -k micrservice-c
    ```
 
-   All workloads would should be deployed via your pipeline agents. We're deploying by hand here simply to expedite the walkthrough; minimizing complexities with end-to-end functioning of this cluster.
+   All workloads would should be deployed via your pipeline agents. We're deploying by hand here simply to expedite the walkthrough.
 
 1. _From your Azure Bastion connection_, Wait until workload is ready to process requests
 

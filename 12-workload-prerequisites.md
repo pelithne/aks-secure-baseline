@@ -64,7 +64,7 @@ The workload consists of Traefik and a small sample application. We need to ensu
 
 ### Steps
 
-1. Update workload kustomization files.
+1. Update workload ACR references in your kustomization files.
 
    ```bash
    grep -lr REPLACE_ME_WITH_YOUR_ACRNAME --include=kustomization.yaml | xargs sed -i "s/REPLACE_ME_WITH_YOUR_ACRNAME/${ACR_NAME}/g"

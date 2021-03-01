@@ -487,7 +487,7 @@
                 }
             ]
         },
-        {
+        /*{
             "type": "Microsoft.Network/privateDnsZones",
             "apiVersion": "2018-09-01",
             "name": "aks-ingress.contoso.com",
@@ -526,10 +526,10 @@
                     }
                 }
             ]
-        },
+        },*/
         {
             "type": "Microsoft.Network/applicationGateways",
-            "apiVersion": "2020-05-01",
+            "apiVersion": "2020-11-01",
             "name": "[variables('agwName')]",
             "location": "[parameters('location')]",
             "dependsOn": [
@@ -538,7 +538,7 @@
             "identity": {
                 "type": "UserAssigned",
                 "userAssignedIdentities": {
-                    "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',  'mi-appgateway-frontend')]": {}
+                    "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'mi-appgateway-frontend')]": {}
                 }
             },
             "zones": [
@@ -581,7 +581,7 @@
                     {
                         "name": "apw-frontend-ip-configuration",
                         "properties": {
-                            "PublicIPAddress": {
+                            "publicIPAddress": {
                                 "id": "[resourceId(subscription().subscriptionId, variables('vNetResourceGroup'), 'Microsoft.Network/publicIpAddresses', 'pip-BU0001A0005-00')]"
                             }
                         }
@@ -603,7 +603,11 @@
                     "enabled": true,
                     "firewallMode": "Prevention",
                     "ruleSetType": "OWASP",
-                    "ruleSetVersion": "3.1"
+                    "ruleSetVersion": "3.1",
+                    "disabledRuleGroups": [],
+                    "requestBodyCheck": true,
+                    "maxRequestBodySizeInKb": 128,
+                    "fileUploadLimitInMb": 100
                 },
                 "enableHttp2": false,
                 "sslCertificates": [
@@ -625,8 +629,7 @@
                             "unhealthyThreshold": 3,
                             "pickHostNameFromBackendHttpSettings": true,
                             "minServers": 0,
-                            "match": {
-                            }
+                            "match": {}
                         }
                     }
                 ],
@@ -636,7 +639,8 @@
                         "properties": {
                             "backendAddresses": [
                                 {
-                                    "fqdn": "bu0001a0005-00.aks-ingress.contoso.com"
+                                    /* This is the IP address that our ingress controller will request */
+                                    "ipAddress": "10.240.4.4"
                                 }
                             ]
                         }
@@ -649,7 +653,8 @@
                             "port": 443,
                             "protocol": "Https",
                             "cookieBasedAffinity": "Disabled",
-                            "pickHostNameFromBackendAddress": true,
+                            "hostName": "bu0001a0005-00.aks-ingress.contoso.com",
+                            "pickHostNameFromBackendAddress": false,
                             "requestTimeout": 20,
                             "probe": {
                                 "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('agwName')),'/probes/probe-bu0001a0005-00.aks-ingress.contoso.com')]"
@@ -677,17 +682,16 @@
                                 "id": "[concat(variables('apwResourceId'), '/sslCertificates/', variables('agwName'), '-ssl-certificate')]"
                             },
                             "hostName": "bicycle.contoso.com",
-                            "hostNames": [
-                            ],
+                            "hostNames": [],
                             "requireServerNameIndication": true
                         }
                     }
                 ],
                 "requestRoutingRules": [
                     {
-                        "Name": "apw-routing-rules",
+                        "name": "apw-routing-rules",
                         "properties": {
-                            "RuleType": "Basic",
+                            "ruleType": "Basic",
                             "httpListener": {
                                 "id": "[concat(variables('apwResourceId'), '/httpListeners/listener-https')]"
                             },
