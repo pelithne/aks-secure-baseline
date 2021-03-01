@@ -2,8 +2,6 @@
 
 Now that the [hub-spoke network is provisioned](./07-cluster-networking.md), the next step in the [AKS Baseline reference implementation for regulated clusters](./) is deploying the AKS cluster and its adjacent Azure resources.
 
-**TODO: Add jump box user setup page.**
-
 ## Steps
 
 1. Get the already-deployed, virtual network resource ID that this cluster will be attached to.

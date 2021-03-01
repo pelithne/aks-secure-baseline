@@ -9,7 +9,7 @@ Your cluster is about to be bootstrapped with some base operating container imag
 You'll end up with the following images imported into your ACR instance, after having passed through a simulated quarantine process.
 
 * Flux (kustomize-controller, source-controller)
-* Flaco
+* Falco
 * Busybox
 * Kured
 * Envoy

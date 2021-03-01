@@ -97,9 +97,11 @@ TODO: Should we defer setting up real routes until this point?
 
    This is a small evolution of the cluster-stamp.json ARM template you deployed before, but with a couple of updates to include the Pod Managed Identity that needs to be made available to the workload. You'll be using the exact same parameters as before. If you wish to see the difference between these two infrastructure as code templates, you can diff them HERE (TODO).
 
+   > :eyes: If you're curious to see what changed in the cluster stamp, [view the diff](https://diffviewer.azureedge.net/?l=https://raw.githubusercontent.com/mspnp/aks-secure-baseline/regulated/cluster-stamp.json&r=https://raw.githubusercontent.com/mspnp/aks-secure-baseline/regulated/cluster-stamp.v2.json).
+
    ```bash
    # [This takes about 10 minutes.]
-   az deployment group create -g rg-bu0001a0005 -f cluster-stamp.v1.json -p targetVnetResourceId=${RESOURCEID_VNET_CLUSTERSPOKE} clusterAdminAadGroupObjectId=${AADOBJECTID_GROUP_CLUSTERADMIN} k8sControlPlaneAuthorizationTenantId=${TENANTID_K8SRBAC} appGatewayListenerCertificate=${APP_GATEWAY_LISTENER_CERTIFICATE} aksIngressControllerCertificate=${AKS_INGRESS_CONTROLLER_CERTIFICATE_BASE64} jumpBoxImageResourceId=${RESOURCEID_IMAGE_JUMPBOX} jumpBoxCloudInitAsBase64=${CLOUDINIT_BASE64}
+   az deployment group create -g rg-bu0001a0005 -f cluster-stamp.v2.json -p targetVnetResourceId=${RESOURCEID_VNET_CLUSTERSPOKE} clusterAdminAadGroupObjectId=${AADOBJECTID_GROUP_CLUSTERADMIN} k8sControlPlaneAuthorizationTenantId=${TENANTID_K8SRBAC} appGatewayListenerCertificate=${APP_GATEWAY_LISTENER_CERTIFICATE} aksIngressControllerCertificate=${AKS_INGRESS_CONTROLLER_CERTIFICATE_BASE64} jumpBoxImageResourceId=${RESOURCEID_IMAGE_JUMPBOX} jumpBoxCloudInitAsBase64=${CLOUDINIT_BASE64}
 
    # Or if you used the parameters file...
    #az deployment group create -g rg-bu0001a0005 -f cluster-stamp.v1.json -p "@azuredeploy.parameters.prod.json"
