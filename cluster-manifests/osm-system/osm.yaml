@@ -1,31 +1,28 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: cluster-osm
-  namespace: cluster-baseline-settings
+  name: osm
+  namespace: osm-system
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: osm-config
-  namespace: cluster-baseline-settings
+  namespace: osm-system
 data:
-  permissive_traffic_policy_mode: "false"
-  egress: "false"
-  envoy_log_level: "info"
+  permissive_traffic_policy_mode: "true"
+  egress: "true"
+  envoy_log_level: "warn"
   enable_debug_server: "false"
   prometheus_scraping: "true"
-
   tracing_enable: "false"
-
-  use_https_ingress: "true"
+  use_https_ingress: "false"
   service_cert_validity_duration: "24h"
-  namespace: cluster-baseline-settings
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: cluster-osm
+  name: osm
 rules:
   - apiGroups: ["apps"]
     resources: ["daemonsets", "deployments", "replicasets", "statefulsets"]
@@ -65,8 +62,6 @@ rules:
   - apiGroups: ["specs.smi-spec.io"]
     resources: ["httproutegroups", "tcproutes"]
     verbs: ["list", "get", "watch"]
-
-  # Used for interacting with cert-manager CertificateRequest resources.
   - apiGroups: ["cert-manager.io"]
     resources: ["certificaterequests"]
     verbs: ["list", "get", "watch", "create", "delete"]
@@ -74,21 +69,21 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: cluster-osm
+  name: osm
 subjects:
   - kind: ServiceAccount
-    name: cluster-osm
-    namespace: cluster-baseline-settings
+    name: osm
+    namespace: osm-system
 roleRef:
   kind: ClusterRole
-  name: cluster-osm
+  name: osm
   apiGroup: rbac.authorization.k8s.io
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: osm-controller
-  namespace: cluster-baseline-settings
+  namespace: osm-system
   labels:
     app: osm-controller
 spec:
@@ -109,7 +104,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: osm-config-validator
-  namespace: cluster-baseline-settings
+  namespace: osm-system
   labels:
     app: osm-controller
 spec:
@@ -124,7 +119,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: osm-controller
-  namespace: cluster-baseline-settings
+  namespace: osm-system
   labels:
     app: osm-controller
     meshName: osm
@@ -142,15 +137,11 @@ spec:
         prometheus.io/scrape: 'true'
         prometheus.io/port: '9091'
     spec:
-      serviceAccountName: cluster-osm
+      serviceAccountName: osm
       nodeSelector:
         kubernetes.io/arch: amd64
         kubernetes.io/os: linux
-      tolerations:
-      - effect: NoExecute
-        key: pci-scope
-        operator: Equal
-        value: out-of-scope
+        pci-scope: out-of-scope
       containers:
         - name: osm-controller
           image: mcr.microsoft.com/oss/openservicemesh/osm-controller:v0.7.0
@@ -165,7 +156,7 @@ spec:
           command: ['/osm-controller']
           args: [
             "--verbosity", "info",
-            "--osm-namespace", "cluster-baseline-settings",
+            "--osm-namespace", "osm-system",
             "--mesh-name", "osm",
             "--init-container-image", "mcr.microsoft.com/oss/openservicemesh/init:v0.7.0",
             "--sidecar-image", "$(ACR_INSTANCE).azurecr.io/live/envoyproxy/envoy-alpine:v1.17.0",
@@ -175,11 +166,11 @@ spec:
           ]
           resources:
             limits:
-              cpu: 1500m
-              memory: 512Mi
+              cpu: "1.5"
+              memory: 256M
             requests:
-              cpu: 500m
-              memory: 32Mi
+              cpu: "0.5"
+              memory: 32M
           readinessProbe:
             initialDelaySeconds: 1
             timeoutSeconds: 5
@@ -195,7 +186,7 @@ spec:
               path: /health/alive
               port: 9091
           env:
-          # The CONTROLLER_POD_NAME env variable sets pod name dynamically, used by osm-controller to register events
+            # The CONTROLLER_POD_NAME env variable sets pod name dynamically, used by osm-controller to register events
             - name: CONTROLLER_POD_NAME
               valueFrom:
                 fieldRef:
@@ -217,7 +208,7 @@ webhooks:
   clientConfig:
     service:
       name: osm-controller
-      namespace: cluster-baseline-settings
+      namespace: osm-system
       path: /mutate-pod-creation
       port: 9090
   # failurePolicy should always be set to Fail to ensure no new resources get created without a sidecar
@@ -264,14 +255,14 @@ webhooks:
   clientConfig:
     service:
       name: osm-config-validator
-      namespace: cluster-baseline-settings
+      namespace: osm-system
       path: /validate-webhook
       port: 9093
   failurePolicy: Fail
   matchPolicy: Exact
   namespaceSelector:
     matchLabels:
-      name: cluster-baseline-settings
+      name: osm-system
   rules:
     - apiGroups:
         - ""
