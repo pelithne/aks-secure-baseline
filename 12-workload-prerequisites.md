@@ -67,6 +67,7 @@ The workload consists of Traefik and a small sample application. We need to ensu
 1. Update workload ACR references in your kustomization files.
 
    ```bash
+   ACR_NAME=$(az deployment group show -g rg-bu0001a0005 -n cluster-stamp --query properties.outputs.containerRegistryName.value -o tsv)
    grep -lr REPLACE_ME_WITH_YOUR_ACRNAME --include=kustomization.yaml | xargs sed -i "s/REPLACE_ME_WITH_YOUR_ACRNAME/${ACR_NAME}/g"
 
    git commit -a -m "Update workload images to use my Azure Container Registry instance."

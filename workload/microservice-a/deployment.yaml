@@ -59,7 +59,7 @@ spec:
         - name: DEEPTH
           value: "1"
         - name: SELF_HOSTS_DEPENDENCIES
-          value: http://microservice-web-service.http://microservice-b-service,http://microservice-c-service
+          value: http://microservice-web-service,http://microservice-b-service,http://microservice-c-service
         - name: EXTERNAL_DEPENDENCIES
           value: https://packages.microsoft.com,https://example.org
         - name: ASPNETCORE_URLS
