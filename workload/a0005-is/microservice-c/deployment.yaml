@@ -6,8 +6,7 @@ metadata:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: microservice-c-deployment
-  namespace: api
+  name: microservice-c
   labels:
     app.kubernetes.io/name: microservice-c
 spec:
@@ -58,7 +57,7 @@ spec:
         - name: DEEPTH
           value: "1"
         - name: SELF_HOSTS_DEPENDENCIES
-          value: http://microservice-web-service,http://microservice-a-service,http://microservice-b-service
+          value: http://microservice-web-service.a0005-is,http://microservice-a-service.a0005-oos,http://microservice-b-service.a0005-oos
         - name: EXTERNAL_DEPENDENCIES
           value: https://packages.microsoft.com,https://example.org
         - name: ASPNETCORE_URLS
@@ -70,7 +69,6 @@ apiVersion: policy/v1beta1
 kind: PodDisruptionBudget
 metadata:
   name: microservice-c-pdb
-  namespace: api
 spec:
   minAvailable: 50%
   selector:
@@ -81,7 +79,6 @@ kind: Service
 apiVersion: v1
 metadata:
   name: microservice-c-service
-  namespace: api
 spec:
   selector:
     app.kubernetes.io/name: microservice-c

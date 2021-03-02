@@ -6,21 +6,21 @@ spec:
   destination:
     kind: ServiceAccount
     name: microservice-a-sa
-    namespace: api
+    namespace: a0005-oss
   rules:
   - kind: HTTPRouteGroup
-    name: microservices-a-routes
+    name: microservice-a
     matches:
     - url-caller
   sources:
   - kind: ServiceAccount
     name: microservice-web-sa
-    namespace: api
+    namespace: a0005-is
 ---
 apiVersion: specs.smi-spec.io/v1alpha4
 kind: HTTPRouteGroup
 metadata:
-  name: microservices-a-routes
+  name: microservice-a
 spec:
   matches:
   - name: url-caller
