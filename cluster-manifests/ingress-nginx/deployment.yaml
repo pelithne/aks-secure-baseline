@@ -27,7 +27,10 @@ metadata:
   namespace: ingress-nginx
 data:
   #https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/
-  whitelist-source-range: 10.240.4.16/28
+  # This is our Azure Application Gateway range. The ONLY traffic that should be hitting
+  # the ingress controller directly is AAG.
+  # TODO: REMOVE JUMPBOX RANGE
+  whitelist-source-range: 10.240.4.16/28,10.240.1.0/28
   ssl-redirect: "false"
 ---
 apiVersion: rbac.authorization.k8s.io/v1
