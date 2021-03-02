@@ -12,7 +12,8 @@ You'll end up with the following images imported into your ACR instance, after h
 * Falco
 * Busybox
 * Kured
-* Envoy
+* Envoy (used for mTLS in Open Service Mesh)
+* NGINX Ingress Controller
 
 ## Quarantine pattern
 
@@ -44,13 +45,15 @@ Using a security agent that is container-aware and can operate from within the c
    # a separate, dedicated quarantine instance managed by your IT team.
    ACR_NAME_QUARANTINE=$(az deployment group show -g rg-bu0001a0005 -n cluster-stamp --query properties.outputs.quarantineContainerRegistryName.value -o tsv)
    
-   # [Combined this takes about two minutes.]
+   # [Combined this takes about three minutes.]
    az acr import --source ghcr.io/fluxcd/kustomize-controller:v0.8.1 -t quarantine/fluxcd/kustomize-controller:v0.8.1 -n $ACR_NAME_QUARANTINE
    az acr import --source ghcr.io/fluxcd/source-controller:v0.8.1 -t quarantine/fluxcd/source-controller:v0.8.1 -n $ACR_NAME_QUARANTINE
    az acr import --source docker.io/falcosecurity/falco:0.27.0 -t quarantine/falcosecurity/falco:0.27.0 -n $ACR_NAME_QUARANTINE
    az acr import --source docker.io/library/busybox:1.33.0 -t quarantine/library/busybox:1.33.0 -n $ACR_NAME_QUARANTINE
    az acr import --source docker.io/weaveworks/kured:1.6.1 -t quarantine/weaveworks/kured:1.6.1 -n $ACR_NAME_QUARANTINE
    az acr import --source docker.io/envoyproxy/envoy-alpine:v1.17.0 -t quarantine/envoyproxy/envoy-alpine:v1.17.0 -n $ACR_NAME_QUARANTINE
+   az acr import --source k8s.gcr.io/ingress-nginx/controller:v0.44.0 -t quarantine/ingress-nginx/controller:v0.44.0 -n $ACR_NAME_QUARANTINE
+   az acr import --source docker.io/jettech/kube-webhook-certgen:v1.5.1 -t quarantine/jettech/kube-webhook-certgen:v1.5.1 -n $ACR_NAME_QUARANTINE
    ```
 
    > For simplicity we are NOT importing images that are coming from Microsoft Container Registry (MCR). This is not an endorsement of the suitability of those images to be pulled without going through quarantine or depending public container registries for production runtime needs. All container images that you bring to the cluster should pass through your quarantine process. For transparency, images that we skipped importing are for [Open Service Mesh](./cluster-manifests/cluster-baseline-settings/osm/) and [CSI Secret Store](./cluster-manifests/cluster-baseline-settings/secrets-store-csi/). Both of these are [progressing to eventually be AKS add-ons in the cluster](https://aka.ms/aks/roadmap), and as such would have been pre-deployed to your cluster like other add-ons (E.g. Azure Policy and Azure Monitor) so you wouldn't need to bootstrap the cluster with them yourself. We recommend you do bring these into this import process, and once you've done that you can update the Azure Policy `allowedContainerImagesRegex` to remove `mcr.microsoft.com/.+` as a valid source of images, leaving just `<your acr instance>/live/.+` as the only valid source.
@@ -79,13 +82,15 @@ Using a security agent that is container-aware and can operate from within the c
    # Get your Azure Container Registry service name
    ACR_NAME=$(az deployment group show -g rg-bu0001a0005 -n cluster-stamp --query properties.outputs.containerRegistryName.value -o tsv)
    
-   # [Combined this takes about two minutes.]
+   # [Combined this takes about three minutes.]
    az acr import --source quarantine/fluxcd/kustomize-controller:v0.8.1 -r $ACR_NAME_QUARANTINE -t live/fluxcd/kustomize-controller:v0.8.1 -n $ACR_NAME
    az acr import --source quarantine/fluxcd/source-controller:v0.8.1 -r $ACR_NAME_QUARANTINE -t live/fluxcd/source-controller:v0.8.1 -n $ACR_NAME
    az acr import --source quarantine/falcosecurity/falco:0.27.0 -r $ACR_NAME_QUARANTINE -t live/falcosecurity/falco:0.27.0 -n $ACR_NAME
    az acr import --source quarantine/library/busybox:1.33.0 -r $ACR_NAME_QUARANTINE -t live/library/busybox:1.33.0 -n $ACR_NAME
    az acr import --source quarantine/weaveworks/kured:1.6.1 -r $ACR_NAME_QUARANTINE -t live/weaveworks/kured:1.6.1 -n $ACR_NAME
    az acr import --source quarantine/envoyproxy/envoy-alpine:v1.17.0 -r $ACR_NAME_QUARANTINE -t live/envoyproxy/envoy-alpine:v1.17.0 -n $ACR_NAME
+   az acr import --source quarantine/ingress-nginx/controller:v0.44.0 -r $ACR_NAME_QUARANTINE -t live/ingress-nginx/controller:v0.44.0 -n $ACR_NAME
+   az acr import --source quarantine/jettech/kube-webhook-certgen:v1.5.1 -r $ACR_NAME_QUARANTINE -t live/jettech/kube-webhook-certgen:v1.5.1 -n $ACR_NAME
    ```
 
    > You've deployed an alert called **Image Imported into ACR from source other than approved Quarantine** that will fire if you import an image directly to `live/` without coming from `quarantine/`. If you'd like to see that trigger, go ahead and import some other image directly to `live/` (e.g. `az acr import --source docker.io/library/busybox:1.33.0 -t live/library/busybox:SkippedQuarantine -n $ACR_NAME`). Within ten minutes, you should see [this alert trigger in the Azure Portal](https://portal.azure.com/#blade/Microsoft_Azure_Monitoring/AlertsManagementSummaryBlade) and if you click **View query result** within the alert you'll see the offending images' details.

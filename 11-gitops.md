@@ -8,6 +8,10 @@ Now that [the AKS cluster](./09-aks-cluster.md) has been deployed, and your [boo
 
 While the following process likely would be handled via your deployment pipelines, we are going to use this opportunity to demonstrate cluster management access via Azure Bastion, and show that your cluster cannot be directly accessed locally.
 
+### AKS Add-ons are validated
+
+Your cluster was deployed with Azure Policy and Azure AD Pod Managed Identity. You'll execute some commands to show how those add-ons are manifesting itself in your cluster.
+
 ### Flux is configured and deployed
 
 Your github repo will be the source of truth for your cluster's configuration. Typically this would be a private repo, but for ease of demonstration, it'll be connected to a public repo (all firewall permissions are set to allow this specific interaction.) You'll be updating a configuration resource for Flux so that it knows to point to your own repo.
@@ -23,7 +27,7 @@ Your github repo will be the source of truth for your cluster's configuration. T
    git commit -a -m "Update bootstrap deployments to use images from my ACR instead of public container registries."
    ```
 
-1. Update flux to pull from your repo instead of the mspnp repo.
+1. Update Flux to pull from your repo instead of the mspnp repo.
 
    TODO: These lines look confusing because we don't want them to replace anything, fix them both with a different placeholder
    TODO: Update gotk-sync with final repo name and branch
@@ -34,7 +38,20 @@ Your github repo will be the source of truth for your cluster's configuration. T
    git commit -a -m "Update Flux to pull from my fork instead of the upstream Microsoft repo."
    ```
 
-1. Push those two changes to your repo.
+1. Update Key Vault placeholders in your Secret Store provider.
+
+   You'll be using the [Azure Key Vault Provider for Secrets Store CSI driver](https://github.com/Azure/secrets-store-csi-driver-provider-azure) to mount the ingress controller's certificate which you stored in Azure Key Vault. Once mounted, your ingress controller will be able to use it. To make the CSI Provider aware of this certificate, it must be described in a `SecretProviderClass` resource. You'll update the supplied manifest file with this information now.
+
+   ```bash
+   KEYVAULT_NAME=$(az deployment group show --resource-group rg-bu0001a0005 -n cluster-stamp --query properties.outputs.keyVaultName.value -o tsv)
+
+   sed -i "s/KEYVAULT_NAME/{$KEYVAULT_NAME}/" ingress-controller/akv-tls-provider.yaml
+   sed -i "s/KEYVAULT_TENANT/${TENANTID_AZURERBAC}/" ingress-controller/akv-tls-provider.yaml
+
+   git commit -a -m "Update SecretProviderClass to reference my ingress wildcard certificate."
+   ```
+
+1. Push those three changes to your repo.
 
    ```bash
    git push
@@ -122,6 +139,14 @@ Your github repo will be the source of truth for your cluster's configuration. T
    k8sazurevolumetypes                      21m
    ```
 
+1. _From your Azure Bastion connection_, confirm your ingress controller's Pod Managed Identity exists.
+
+   ```bash
+   kubectl describe AzureIdentity,AzureIdentityBinding -n ingress-nginx
+   ```
+
+   This will show you the Azure Identity Kubernetes resources that were created via the cluster stamp ARM template. This means that any workload in the `ingress-nginx` namespace that wishes to identify itself as the Azure resource `podmi-ingress-controller` can do so by adding a `aadpodidbinding: podmi-ingress-controller` label to their pod deployment. In this walkthrough, our ingress controller, NGINX, will be using that identity, combined with the Secret Store driver for Key Vault to pull a TLS certificate you imported above.
+
 1. _From your Azure Bastion connection_, bootstrap Flux.
 
    ```bash
@@ -197,4 +222,4 @@ It's worth repeating again, **most regulated customers are bringing ISV or open 
 
 ### Next step
 
-:arrow_forward: [Prepare for the workload by installing its prerequisites](./12-workload-prerequisites.md)
+:arrow_forward: [Deploy your workload](./12-workload.md)

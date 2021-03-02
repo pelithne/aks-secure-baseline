@@ -295,7 +295,6 @@
             "dependsOn": [
                 "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'mi-appgateway-frontend')]",
                 "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'podmi-ingress-controller')]"
-
             ],
             "properties": {
                 "accessPolicies": [
@@ -2312,7 +2311,7 @@
                         ]
                     },
                     "effect": {
-                        "value": "deny"
+                        "value": "audit"
                     }
                 }
             }
@@ -2328,7 +2327,7 @@
                 "policyDefinitionId": "[variables('policyResourceIdEnforceImageSource')]",
                 "parameters": {
                     "allowedContainerImagesRegex": {
-                        "value": "[concat(variables('defaultAcrName'),'.azurecr.io/live/.+$|mcr.microsoft.com/.+$')]"
+                        "value": "[concat(variables('defaultAcrName'),'.azurecr.io/live/.+$|mcr.microsoft.com/oss/.+$')]"
                     },
                     "excludedNamespaces": {
                         "value": [

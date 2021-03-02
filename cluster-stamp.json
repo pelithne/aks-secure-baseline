@@ -293,13 +293,27 @@
             "name": "[variables('keyVaultName')]",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'mi-appgateway-frontend')]"
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'mi-appgateway-frontend')]",
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'podmi-ingress-controller')]"
             ],
             "properties": {
                 "accessPolicies": [
                     {
                         "tenantId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'mi-appgateway-frontend')).tenantId]",
                         "objectId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'mi-appgateway-frontend')).principalId]",
+                        "permissions": {
+                            "secrets": [
+                                "get"
+                            ],
+                            "certificates": [
+                                "get"
+                            ],
+                            "keys": []
+                        }
+                    },
+                    {
+                        "tenantId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'podmi-ingress-controller')).tenantId]",
+                        "objectId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'podmi-ingress-controller')).principalId]",
                         "permissions": {
                             "secrets": [
                                 "get"
@@ -1335,7 +1349,8 @@
                 "[resourceId('Microsoft.Authorization/policyAssignments', variables('policyAssignmentNameEnforceInternalLoadBalancers'))]",
                 "[resourceId('Microsoft.Authorization/policyAssignments', variables('policyAssignmentNameEnforceResourceLimits'))]",
                 "[resourceId('Microsoft.Authorization/policyAssignments', variables('policyAssignmentNameRoRootFilesystem'))]",
-                "[resourceId('Microsoft.Compute/virtualMachineScaleSets', 'vmss-jumpboxes')]"
+                "[resourceId('Microsoft.Compute/virtualMachineScaleSets', 'vmss-jumpboxes')]",
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'podmi-ingress-controller')]"
             ],
             "properties": {
                 "kubernetesVersion": "[parameters('kubernetesVersion')]",
@@ -2285,7 +2300,7 @@
                         ]
                     },
                     "effect": {
-                        "value": "deny"
+                        "value": "audit"
                     }
                 }
             }
@@ -2301,7 +2316,7 @@
                 "policyDefinitionId": "[variables('policyResourceIdEnforceImageSource')]",
                 "parameters": {
                     "allowedContainerImagesRegex": {
-                        "value": "[concat(variables('defaultAcrName'),'.azurecr.io/live/.+$|mcr.microsoft.com/.+$')]"
+                        "value": "[concat(variables('defaultAcrName'),'.azurecr.io/live/.+$|mcr.microsoft.com/oss/.+$')]"
                     },
                     "excludedNamespaces": {
                         "value": [

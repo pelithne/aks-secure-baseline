@@ -2,6 +2,8 @@
 
 TODO
 
+This point in the steps marks a significant transition in roles and purpose. At this point, you have a AKS cluster that is deployed in an architecture that will help your compliance needs and is bootstrapped with core additions you feel are requirements for your solution, all managed via Flux. A cluster without any business workloads, essentially. The next few steps will walk through considerations that are specific to the first workload in the cluster. Workloads are a mix of potential infrastructure changes (e.g. Azure Application Gateway routes, Azure Resources for the workload itself -- such as CosmosDB for state storage and Azure Cache for Redis for cache.), privileged cluster changes (i.e. creating target namespace, creating and assigning, any specific cluster or namespace roles, etc.), deciding on how that "last mile" deployment of these workloads will be handled (e.g. using the ops subnet adjacent to this cluster), and workload teams which are responsible for creating the container image(s), building deployment manifests, etc. Many regulations have a clear separation of duties requirements, be sure in your case you have documented and understood change management process. How you partition this work will not be described here because there isn't a one-size-fits-most solution. Allocate time to plan, document, and educate on these concerns.
+
 <!-- The cluster now has an [Traefik configured with a TLS certificate](./13-secret-management-and-ingress-controller.md). The last step in the process is to deploy the workload, which will demonstrate the system's functions. -->
 
 ## Expected results
@@ -25,6 +27,8 @@ TODO: Consider returning a quarantine registry in the outputs of the arm templat
 1. Use your Azure Container Registry build agents to build and quarantine the workload.
 
    ```bash
+   cd ../workload
+
    ACR_NAME_QUARANTINE=$(az deployment group show -g rg-bu0001a0005 -n cluster-stamp --query properties.outputs.containerRegistryName.value -o tsv)
 
    az acr build -t quarantine/a0005/chain-api:1.0 -r $ACR_NAME_QUARANTINE --platform linux/amd64 --agent-pool acragent -f SimpleChainApi/Dockerfile https://github.com/mspnp/aks-secure-baseline#feature/regulated-web-api-ui:SimpleChainApi
@@ -42,13 +46,34 @@ TODO: Consider returning a quarantine registry in the outputs of the arm templat
    az acr import --source quarantine/a0005/chain-api:1.0 -r $ACR_NAME_QUARANTINE -t live/a0005/chain-api:1.0 -n $ACR_NAME
    ```
 
+1. Update workload ACR references in your kustomization files.
+
+   ```bash
+   grep -lr REPLACE_ME_WITH_YOUR_ACRNAME --include=kustomization.yaml | xargs sed -i "s/REPLACE_ME_WITH_YOUR_ACRNAME/${ACR_NAME}/g"
+
+   git commit -a -m "Update workload images to use my Azure Container Registry instance."
+   ```
+
+1. Push this changes to your repo.
+
+   ```bash
+   git push
+   ```
+
+1. _From your Azure Bastion connection_, get this update.
+
+   ```bash
+   git pull
+   ```
+
 1. _From your Azure Bastion connection_, deploy the sample workloads to cluster.
 
    ```bash
-   kubectl apply -k micrservice-web
-   kubectl apply -k micrservice-a
-   kubectl apply -k micrservice-b
-   kubectl apply -k micrservice-c
+   cd ../workload
+   kubectl apply -k a0005-is/micrservice-web
+   kubectl apply -k a0005-oos/micrservice-a
+   kubectl apply -k a0005-oos/micrservice-b
+   kubectl apply -k a0005-is/micrservice-c
    ```
 
    All workloads would should be deployed via your pipeline agents. We're deploying by hand here simply to expedite the walkthrough.
@@ -102,4 +127,4 @@ Your compliant cluster architecture requires a compliant inner loop development 
 
 ### Next step
 
-:arrow_forward: [End-to-End Validation](./15-validation.md)
+:arrow_forward: [End-to-End Validation](./13-validation.md)
