@@ -33,10 +33,10 @@ To support end-to-end TLS encryption, the following TLS certificates are procure
 1. Generate the certificate for the ingress controller with a common name of `*.aks-ingress.contoso.com`.
 
    ```bash
-   openssl req -x509 -nodes -days 365 -newkey rsa:2048 -out traefik-ingress-internal-aks-ingress-contoso-com-tls.crt -keyout traefik-ingress-internal-aks-ingress-contoso-com-tls.key -subj "/CN=*.aks-ingress.contoso.com/O=Contoso Aks Ingress"
+   openssl req -x509 -nodes -days 365 -newkey rsa:2048 -out ingress-internal-aks-ingress-contoso-com-tls.crt -keyout ingress-internal-aks-ingress-contoso-com-tls.key -subj "/CN=*.aks-ingress.contoso.com/O=Contoso Aks Ingress"
 
    # convert to pem format (as required by application gateway for backend pool)
-   cat traefik-ingress-internal-aks-ingress-contoso-com-tls.crt traefik-ingress-internal-aks-ingress-contoso-com-tls.key > traefik-ingress-internal-aks-ingress-contoso-com-tls.pem
+   cat ingress-internal-aks-ingress-contoso-com-tls.crt ingress-internal-aks-ingress-contoso-com-tls.key > ingress-internal-aks-ingress-contoso-com-tls.pem
    ```
 
 1. Base64 encode the ingress controller certificate.
@@ -44,7 +44,7 @@ To support end-to-end TLS encryption, the following TLS certificates are procure
    :bulb: No matter if you used a certificate from your organization or you generated one from above, you'll need the public certificate (as `.crt` or `.cer`) to be Base64 encoded for proper storage in Key Vault later.
 
    ```bash
-   AKS_INGRESS_CONTROLLER_CERTIFICATE_BASE64=$(cat traefik-ingress-internal-aks-ingress-contoso-com-tls.crt | base64 | tr -d '\n')
+   AKS_INGRESS_CONTROLLER_CERTIFICATE_BASE64=$(cat ingress-internal-aks-ingress-contoso-com-tls.crt | base64 | tr -d '\n')
    ```
 
 ### Next step

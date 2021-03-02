@@ -1533,23 +1533,14 @@
                     "userAssignedIdentities": [
                         {
                             "name": "podmi-ingress-controller",
-                            "namespace": "api",
+                            "namespace": "ingress-nginx",
                             "identity": {
                                 "resourceId": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'podmi-ingress-controller')]",
                                 "clientId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'podmi-ingress-controller')).clientId]",
                                 "objectId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'podmi-ingress-controller')).principalId]"
                             }
                         }
-                    ]/*,
-                    "userAssignedIdentityExceptions": [
-                        {
-                            "name": "ignorekonnectivity",
-                            "namespace": "kube-system",
-                            "podLabels": {
-                                "app": "konnectivity-agent"
-                            }
-                        }
-                    ]*/
+                    ]
                 }
             },
             "identity": {

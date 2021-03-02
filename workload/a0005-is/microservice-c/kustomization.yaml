@@ -3,6 +3,7 @@ kind: Kustomization
 namespace: api
 resources:
 - deployment.yaml
+- allowed-traffic.yaml
 images:
 - name: YOUR_ACR.azurecr.io/live/a0005/chain-api
   newName: REPLACE_ME_WITH_YOUR_ACRNAME.azurecr.io/live/a0005/chain-api

@@ -30,7 +30,7 @@ Once traffic hits Azure Application Gateway, public-facing TLS is terminated. Th
 
    ```bash
    # Import the .pem file you created in a prior step as a Key Vault certificate.
-   az keyvault certificate import -f traefik-ingress-internal-aks-ingress-contoso-com-tls.pem -n traefik-ingress-internal-aks-ingress-contoso-com-tls --vault-name $KEYVAULT_NAME
+   az keyvault certificate import -f ingress-internal-aks-ingress-contoso-com-tls.pem -n ingress-internal-aks-ingress-contoso-com-tls --vault-name $KEYVAULT_NAME
    ```
 
 1. Remove the import certificates permissions for current user.

@@ -16,7 +16,7 @@ data:
   enable_debug_server: "false"
   prometheus_scraping: "true"
   tracing_enable: "false"
-  use_https_ingress: "false"
+  use_https_ingress: "true"
   service_cert_validity_duration: "24h"
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -229,6 +229,7 @@ webhooks:
         - cluster-baseline-settings
         - falco-system
         - flux-system
+        - ingress-nginx
         - gatekeeper-system
         - kube-node-lease
         - kube-public

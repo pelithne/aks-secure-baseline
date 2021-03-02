@@ -1,0 +1,29 @@
+kind: TrafficTarget
+apiVersion: access.smi-spec.io/v1alpha3
+metadata:
+  name: microservice-c-traffictarget
+spec:
+  destination:
+    kind: ServiceAccount
+    name: microservice-c-sa
+    namespace: api-is
+  rules:
+  - kind: HTTPRouteGroup
+    name: microservice-c-route-specs
+    matches:
+    - url-caller
+  sources:
+  - kind: ServiceAccount
+    name: microservice-web-sa
+    namespace: api
+---
+apiVersion: specs.smi-spec.io/v1alpha4
+kind: HTTPRouteGroup
+metadata:
+  name: microservice-c-route-specs
+spec:
+  matches:
+  - name: url-caller
+    pathRegex: /URLCaller/depth/.+
+    methods:
+    - GET
