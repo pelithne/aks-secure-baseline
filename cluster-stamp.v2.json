@@ -645,6 +645,19 @@
                             "minServers": 0,
                             "match": {}
                         }
+                    },
+                    {
+                        "name": "ingress-controller",
+                        "properties": {
+                            "protocol": "Https",
+                            "path": "/healthz",
+                            "interval": 30,
+                            "timeout": 30,
+                            "unhealthyThreshold": 3,
+                            "pickHostNameFromBackendHttpSettings": true,
+                            "minServers": 0,
+                            "match": {}
+                        }
                     }
                 ],
                 "backendAddressPools": [
