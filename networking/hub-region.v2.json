@@ -628,23 +628,6 @@
                             },
                             "priority": 200,
                             "rules": [
-                                /*{
-                                    "name": "microsoft-container-registry",
-                                    "description": "Required to access images in Microsoft Container Registry (MCR). This registry contains first-party images (E.g., coreDNS, etc.). These images are required for the correct creation and functioning of the cluster, including scale and upgrade operations.",
-                                    "sourceIpGroups": [
-                                        "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]"
-                                    ],
-                                    "protocols": [
-                                        {
-                                            "protocolType": "Https",
-                                            "port": 443
-                                        }
-                                    ],
-                                    "targetFqdns": [
-                                        "mcr.microsoft.com",
-                                        "*.data.mcr.microsoft.com"
-                                    ]
-                                },*/
                                 {
                                     "name": "runtime",
                                     "description": "This covers all runtime requirements for AKS (sans addons). If you wish to use a more restricted set of values than what this provides, see: https://docs.microsoft.com/azure/firewall/protect-azure-kubernetes-service and https://docs.microsoft.com/azure/aks/limit-egress-traffic#required-outbound-network-rules-and-fqdns-for-aks-clusters and remove this entry",
@@ -661,72 +644,6 @@
                                         "AzureKubernetesService"
                                     ]
                                 },
-                                /*{
-                                    "name": "aad-auth",
-                                    "description": "This address is required for Azure Active Directory authentication.",
-                                    "sourceIpGroups": [
-                                        "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]"
-                                    ],
-                                    "protocols": [
-                                        {
-                                            "protocolType": "Https",
-                                            "port": 443
-                                        }
-                                    ],
-                                    "targetFqdns": [
-                                        "login.microsoftonline.com"
-                                    ]
-                                },
-                                {
-                                    "name": "apt-get",
-                                    "description": "This address is the Microsoft packages repository used for cached apt-get operations. Example packages include Moby, PowerShell, and Azure CLI.",
-                                    "sourceIpGroups": [
-                                        "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]"
-                                    ],
-                                    "protocols": [
-                                        {
-                                            "protocolType": "Https",
-                                            "port": 443
-                                        }
-                                    ],
-                                    "targetFqdns": [
-                                        "packages.microsoft.com"
-                                    ]
-                                },
-                                {
-                                    "name": "cluster-binaries",
-                                    "description": "This address is for the repository required to download and install required binaries like kubenet and Azure CNI.",
-                                    "sourceIpGroups": [
-                                        "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]"
-                                    ],
-                                    "protocols": [
-                                        {
-                                            "protocolType": "Https",
-                                            "port": 443
-                                        }
-                                    ],
-                                    "targetFqdns": [
-                                        "acs-mirror.azureedge.net"
-                                    ]
-                                },
-                                {
-                                    "name": "ubuntu-security-patches",
-                                    "description": "This address lets the Linux cluster nodes download the required security patches and updates per https://docs.microsoft.com/azure/aks/limit-egress-traffic#optional-recommended-fqdn--application-rules-for-aks-clusters.",
-                                    "sourceIpGroups": [
-                                        "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]"
-                                    ],
-                                    "protocols": [
-                                        {
-                                            "protocolType": "Http",
-                                            "port": 80
-                                        }
-                                    ],
-                                    "targetFqdns": [
-                                        "security.ubuntu.com",
-                                        "azure.archive.ubuntu.com",
-                                        "changelogs.ubuntu.com"
-                                    ]
-                                },*/
                                 {
                                     "name": "azure-monitor-addon",
                                     "description": "All required for Azure Monitor for containers per https://docs.microsoft.com/azure/aks/limit-egress-traffic#azure-monitor-for-containers - Optionally you can restrict the ods and oms wildcards to JUST your clusters' log analytics instances.",
@@ -789,24 +706,7 @@
                                         "github.com",
                                         "api.github.com"
                                     ]
-                                }/*,
-                                {
-                                    "name": "pull-flux-images",
-                                    "description": "Allows pulling images from your private container registry(ies). Feel free to restrict further.",
-                                    "sourceIpGroups": [
-                                        "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]"
-                                    ],
-                                    "protocols": [
-                                        {
-                                            "protocolType": "Https",
-                                            "port": 443
-                                        }
-                                    ],
-                                    "targetFqdns": [
-                                        "*.azurecr.io",
-                                        "*.privatelink.azurecr.io"
-                                    ]
-                                }*/
+                                }
                             ]
                         }
                     },
@@ -1082,10 +982,6 @@
                             },
                             {
                                 "category": "AzureFirewallNetworkRule",
-                                "enabled": true
-                            },
-                            {
-                                "category": "AzureFirewallDnsProxy",
                                 "enabled": true
                             }
                         ],
