@@ -1,7 +1,7 @@
 
 az deployment group create -g rg-enterprise-networking-spokes -f networking/vnet.json -p location=northeurope -p namePrefix=tobbe
 
-az deployment group validate -g rg-enterprise-networking-spokes -f cluster-stamp.json -p location=northeurope --parameters .\azuredeploy.parameters.prod.json
+az deployment group validate -g rg-enterprise-networking-spokes -f cluster-stamp.json --parameters .\azuredeploy.parameters.prod.json
 
 
 
@@ -10,6 +10,12 @@ az deployment group validate -g rg-enterprise-networking-spokes -f cluster-stamp
 **** PRERQ PREPP *****
 **** https://github.com/platonarash2/aks-secure-baseline/blob/main/03-aad.md
 ***************************
+
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -out appgw.crt -keyout appgw.key -subj "/CN=bicycle.contoso.com/O=Contoso Bicycle"
+openssl pkcs12 -export -out appgw.pfx -in appgw.crt -inkey appgw.key -passout pass:foobar
+export APP_GATEWAY_LISTENER_CERTIFICATE=$(cat appgw.pfx | base64 | tr -d '\n')
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -out traefik-ingress-internal-aks-ingress-contoso-com-tls.crt -keyout traefik-ingress-internal-aks-ingress-contoso-com-tls.key -subj "/CN=*.aks-ingress.contoso.com/O=Contoso Aks Ingress"
+export AKS_INGRESS_CONTROLLER_CERTIFICATE_BASE64=$(cat traefik-ingress-internal-aks-ingress-contoso-com-tls.crt | base64 | tr -d '\n')
 
 
 1. Skapa AAD AKS cluster admin group: "dev-tobbe-cluster-admin"

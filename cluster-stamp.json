@@ -2,6 +2,12 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "0.0.0.5",
     "parameters": {
+          "pip-name": {
+            "type": "string",           
+            "metadata": {
+                "description": "Name of the Public IP"
+            }
+        },
         "targetVnetResourceId": {
             "type": "string",
             "minLength": 79,
@@ -128,7 +134,7 @@
 
         "clusterControlPlaneIdentityName": "[concat('mi-', variables('clusterName'), '-controlplane')]",
 
-        "keyVaultName": "[concat('kv-', variables('clusterName'))]",
+        "keyVaultName": "[concat('kv2-', variables('clusterName'))]",
 
         "policyResourceIdAKSLinuxRestrictive": "/providers/Microsoft.Authorization/policySetDefinitions/42b8ef37-b724-4e24-bbc8-7a7708edfe00",
         "policyResourceIdEnforceHttpsIngress": "/providers/Microsoft.Authorization/policyDefinitions/1a5b4dca-0b6f-4cf5-907c-56316bc1bf3d",
@@ -217,7 +223,7 @@
                 "enabledForDeployment": false,
                 "enabledForDiskEncryption": false,
                 "enabledForTemplateDeployment": false,
-                "enableSoftDelete": true
+                "enableSoftDelete": false
             },
             "resources": [
                 {
@@ -479,7 +485,7 @@
                         "name": "apw-frontend-ip-configuration",
                         "properties": {
                             "PublicIPAddress": {
-                                "id": "[resourceId(subscription().subscriptionId, variables('vNetResourceGroup'), 'Microsoft.Network/publicIpAddresses', 'pip-BU0001A0008-00')]"
+                                "id": "[resourceId(subscription().subscriptionId, variables('vNetResourceGroup'), 'Microsoft.Network/publicIpAddresses', parameters('pip-name'))]"
                             }
                         }
                     }
