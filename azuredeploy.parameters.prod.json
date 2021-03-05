@@ -3,23 +3,20 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "namePrefix": {
-      "value": "tobbe"     
+      "value": "tobbe2"     
     },
     "location": {
       "value": "westeurope"
     },
     "pip-name": {
-      "value": "pip-tobbe"
+      "value": "pip-tobbe2"
     },
     "keyVaultName": {
-      "value": "akv-tobbe-345"
+      "value": "akv-tobbe-346"
     },
     "geoRedundancyLocation": {
       "value": "northeurope"
-    },
-    "targetVnetResourceId": {
-      "value": "/subscriptions/e9aac0f0-83bd-43cf-ab35-c8e3eccc8932/resourceGroups/rg-enterprise-networking-spokes/providers/Microsoft.Network/virtualNetworks/vnet-tobbe"
-    },
+    },    
     "clusterAdminAadGroupObjectId": {
       "value": "91dc8d80-00be-4962-b980-121b7ca6e73c"
     },

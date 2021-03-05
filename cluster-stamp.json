@@ -20,14 +20,7 @@
             "metadata": {
                 "description": "Name of the key vault"
             }
-        },
-        "targetVnetResourceId": {
-            "type": "string",
-            "minLength": 79,
-            "metadata": {
-                "description": "The regional network spoke VNet Resource ID that the cluster will be joined to"
-            }
-        },
+        },        
         "clusterAdminAadGroupObjectId": {
             "type": "string",
             "metadata": {
@@ -120,6 +113,9 @@
     },
     "variables": {
 
+        "targetVnetResourceId": "[concat('/subscriptions/', subscription().subscriptionId ,'/resourceGroups/', resourceGroup().name,'/providers/Microsoft.Network/virtualNetworks/', 'vnet-', parameters('namePrefix'))]",
+
+
         "clusterVNetName": "[concat('vnet-', parameters('namePrefix'))]",
         "primaryClusterPipName": "[concat('pip-', parameters('namePrefix'))]",
         "LaName": "[concat('la-', parameters('location'), '-', parameters('namePrefix'), '-', uniqueString(resourceId('Microsoft.Network/virtualNetworks', parameters('namePrefix'))))]",
@@ -139,10 +135,10 @@
         "containerInsightsSolutionName": "[concat('ContainerInsights(', variables('logAnalyticsWorkspaceName'),')')]",
         "defaultAcrName": "[concat('acraks2', variables('subRgUniqueString'))]",
 
-        "vNetResourceGroup": "[split(parameters('targetVnetResourceId'),'/')[4]]",
-        "vnetName": "[split(parameters('targetVnetResourceId'),'/')[8]]",
-        "vnetNodePoolSubnetResourceId": "[concat(parameters('targetVnetResourceId'), '/subnets/snet-clusternodes')]",
-        "vnetIngressServicesSubnetResourceId": "[concat(parameters('targetVnetResourceId'), '/subnets/snet-cluster-ingressservices')]",
+        "vNetResourceGroup": "[split(variables('targetVnetResourceId'),'/')[4]]",
+        "vnetName": "[split(variables('targetVnetResourceId'),'/')[8]]",
+        "vnetNodePoolSubnetResourceId": "[concat(variables('targetVnetResourceId'), '/subnets/snet-clusternodes')]",
+        "vnetIngressServicesSubnetResourceId": "[concat(variables('targetVnetResourceId'), '/subnets/snet-cluster-ingressservices')]",
 
         "agwName": "[concat('apw-', variables('clusterName'))]",
         "apwResourceId": "[resourceId('Microsoft.Network/applicationGateways', variables('agwName'))]",
@@ -655,7 +651,7 @@
                     ],
                     "properties": {
                         "virtualNetwork": {
-                            "id": "[parameters('targetVnetResourceId')]"
+                            "id": "[variables('targetVnetResourceId')]"
                         },
                         "registrationEnabled": false
                     }
@@ -681,7 +677,7 @@
                     ],
                     "properties": {
                         "virtualNetwork": {
-                            "id": "[parameters('targetVnetResourceId')]"
+                            "id": "[variables('targetVnetResourceId')]"
                         },
                         "registrationEnabled": false
                     }
@@ -723,7 +719,7 @@
                     ],
                     "properties": {
                         "virtualNetwork": {
-                            "id": "[parameters('targetVnetResourceId')]"
+                            "id": "[variables('targetVnetResourceId')]"
                         },
                         "registrationEnabled": false
                     }
@@ -776,7 +772,7 @@
                         "name": "apw-ip-configuration",
                         "properties": {
                             "subnet": {
-                                "id": "[concat(parameters('targetVnetResourceId'), '/subnets/snet-applicationgateway')]"
+                                "id": "[concat(variables('targetVnetResourceId'), '/subnets/snet-applicationgateway')]"
                             }
                         }
                     }
