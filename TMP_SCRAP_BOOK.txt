@@ -1,5 +1,5 @@
 
-az deployment group create -g rg-enterprise-networking-spokes -f networking/vnet.json -p location=northeurope -p namePrefix=tobbe
+az deployment group create -g rg-enterprise-networking-spokes -f networking/vnet.json -p location=westeurope -p namePrefix=tobbe
 
 az deployment group validate -g rg-enterprise-networking-spokes -f cluster-stamp.json --parameters .\azuredeploy.parameters.prod.json
 
@@ -37,16 +37,20 @@ Behövs inte för att vi kan inte skapa users i AAD i microsoft
 
 
 export TENANTDOMAIN_K8SRBAC=$(az ad signed-in-user show --query 'userPrincipalName' -o tsv | cut -d '@' -f 2 | sed 's/\"//')
-* export AADOBJECTNAME_USER_CLUSTERADMIN=arash.rassoulpour@microsoft.com
+* export AADOBJECTNAME_USER_CLUSTERADMIN=arash.rassoulpour
 //export AADOBJECTID_USER_CLUSTERADMIN=$(az ad user create --display-name=${AADOBJECTNAME_USER_CLUSTERADMIN} --user-principal-name ${AADOBJECTNAME_USER_CLUSTERADMIN}@${TENANTDOMAIN_K8SRBAC} --force-change-password-next-login --password ChangeMebu0001a0008AdminChangeMe --query objectId -o tsv)
 
 // get objectID for Arash.rassoulpour@microsoft.com = 88f1b1ac-573b-4a49-8b5a-e3511f68a7dc
 * export AADOBJECTID_USER_CLUSTERADMIN=88f1b1ac-573b-4a49-8b5a-e3511f68a7dc
 
+Lagt in AAD-Group-Guid i dessa filer (parameterisera):
 Edit C:\GitHub\aks-secure-baseline\cluster-manifests\cluster-rbac.yaml
 Edit C:\GitHub\aks-secure-baseline\cluster-manifests\cluster-baseline-settings\rbac.yaml
 91dc8d80-00be-4962-b980-121b7ca6e73c är AAD grupp objektid: dev-tobbe-cluster-admin
 
+
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -out appgw.crt -keyout appgw.key -subj "/CN=bicycle.contoso.com/O=Contoso Bicycle"
+openssl pkcs12 -export -out appgw.pfx -in appgw.crt -inkey appgw.key -passout pass:password
 
 Edit: C:\GitHub\aks-secure-baseline\azuredeploy.parameters.prod.json
 echo $APP_GATEWAY_LISTENER_CERTIFICATE
