@@ -2,13 +2,25 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "0.0.0.5",
     "parameters": {
-        "targetVnetResourceId": {
+
+        "namePrefix": {
             "type": "string",
-            "minLength": 79,
             "metadata": {
-                "description": "The regional network spoke VNet Resource ID that the cluster will be joined to"
+                "description": "Name of the Public IP"
             }
         },
+        "pip-name": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Public IP"
+            }
+        },
+        "keyVaultName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the key vault"
+            }
+        },        
         "clusterAdminAadGroupObjectId": {
             "type": "string",
             "metadata": {
@@ -100,6 +112,14 @@
         }
     },
     "variables": {
+
+        "targetVnetResourceId": "[concat('/subscriptions/', subscription().subscriptionId ,'/resourceGroups/', resourceGroup().name,'/providers/Microsoft.Network/virtualNetworks/', 'vnet-', parameters('namePrefix'))]",
+
+
+        "clusterVNetName": "[concat('vnet-', parameters('namePrefix'))]",
+        "primaryClusterPipName": "[concat('pip-', parameters('namePrefix'))]",
+        "LaName": "[concat('la-', parameters('location'), '-', parameters('namePrefix'), '-', uniqueString(resourceId('Microsoft.Network/virtualNetworks', parameters('namePrefix'))))]",
+
         "networkContributorRole": "[concat(subscription().Id, '/providers/Microsoft.Authorization/roleDefinitions/4d97b98b-1d4f-4787-a291-c67834d212e7')]",
         "monitoringMetricsPublisherRole": "[concat(subscription().Id, '/providers/Microsoft.Authorization/roleDefinitions/3913510d-42f4-4e42-8a64-420c390055eb')]",
         "acrPullRole": "[concat(subscription().Id, '/providers/Microsoft.Authorization/roleDefinitions/7f951dda-4ed3-4680-a7ca-43fe172d538d')]",
@@ -111,14 +131,14 @@
 
         "nodeResourceGroupName": "[concat('rg-', variables('clusterName'), '-nodepools')]",
         "clusterName": "[concat('aks-', variables('subRgUniqueString'))]",
-        "logAnalyticsWorkspaceName": "[concat('la-', variables('clusterName'))]",
+        "logAnalyticsWorkspaceName": "[uniqueString('wrkspc-', resourceGroup().id)]",
         "containerInsightsSolutionName": "[concat('ContainerInsights(', variables('logAnalyticsWorkspaceName'),')')]",
-        "defaultAcrName": "[concat('acraks', variables('subRgUniqueString'))]",
+        "defaultAcrName": "[concat('acraks2', variables('subRgUniqueString'))]",
 
-        "vNetResourceGroup": "[split(parameters('targetVnetResourceId'),'/')[4]]",
-        "vnetName": "[split(parameters('targetVnetResourceId'),'/')[8]]",
-        "vnetNodePoolSubnetResourceId": "[concat(parameters('targetVnetResourceId'), '/subnets/snet-clusternodes')]",
-        "vnetIngressServicesSubnetResourceId": "[concat(parameters('targetVnetResourceId'), '/subnets/snet-cluster-ingressservices')]",
+        "vNetResourceGroup": "[split(variables('targetVnetResourceId'),'/')[4]]",
+        "vnetName": "[split(variables('targetVnetResourceId'),'/')[8]]",
+        "vnetNodePoolSubnetResourceId": "[concat(variables('targetVnetResourceId'), '/subnets/snet-clusternodes')]",
+        "vnetIngressServicesSubnetResourceId": "[concat(variables('targetVnetResourceId'), '/subnets/snet-cluster-ingressservices')]",
 
         "agwName": "[concat('apw-', variables('clusterName'))]",
         "apwResourceId": "[resourceId('Microsoft.Network/applicationGateways', variables('agwName'))]",
@@ -128,7 +148,7 @@
 
         "clusterControlPlaneIdentityName": "[concat('mi-', variables('clusterName'), '-controlplane')]",
 
-        "keyVaultName": "[concat('kv-', variables('clusterName'))]",
+        "keyVaultName": "[parameters('keyVaultName')]",
 
         "policyResourceIdAKSLinuxRestrictive": "/providers/Microsoft.Authorization/policySetDefinitions/42b8ef37-b724-4e24-bbc8-7a7708edfe00",
         "policyResourceIdEnforceHttpsIngress": "/providers/Microsoft.Authorization/policyDefinitions/1a5b4dca-0b6f-4cf5-907c-56316bc1bf3d",
@@ -144,6 +164,283 @@
         "policyAssignmentNameEnforceImageSource": "[guid(variables('policyResourceIdEnforceImageSource'), resourceGroup().name, variables('clusterName'))]"
     },
     "resources": [
+
+        {
+            "type": "Microsoft.OperationalInsights/workspaces",
+            "apiVersion": "2020-08-01",
+            "name": "[variables('LaName')]",
+            "location": "[parameters('location')]",
+            "comments": "This Log Analytics workspace stores logs",
+            "properties": {
+                "sku": {
+                    "name": "PerGB2018"
+                },
+                "retentionInDays": 30,
+                "publicNetworkAccessForIngestion": "Enabled",
+                "publicNetworkAccessForQuery": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2020-05-01",
+            "name": "[concat('nsg-', variables('clusterVNetName'), '-nodepools')]",
+            "location": "[parameters('location')]",
+            "comments": "Default NSG on the AKS nodepools. Feel free to constrict further!",
+            "properties": {
+                "securityRules": []
+            },
+            "resources": [
+                {
+                    "type": "providers/diagnosticSettings",
+                    "apiVersion": "2017-05-01-preview",
+                    "name": "Microsoft.Insights/toLA",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-nodepools'))]",
+                        "[resourceId('Microsoft.OperationalInsights/workspaces',variables('LaName'))]"
+                    ],
+                    "properties": {
+                        "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces',variables('LaName'))]",
+                        "logs": [
+                            {
+                                "category": "NetworkSecurityGroupEvent",
+                                "enabled": true
+                            },
+                            {
+                                "category": "NetworkSecurityGroupRuleCounter",
+                                "enabled": true
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2020-05-01",
+            "name": "[concat('nsg-', variables('clusterVNetName'), '-aksilbs')]",
+            "location": "[parameters('location')]",
+            "comments": "Default NSG on the AKS ILB subnet. Feel free to constrict further!",
+            "properties": {
+                "securityRules": []
+            },
+            "resources": [
+                {
+                    "name": "Microsoft.Insights/toLA",
+                    "type": "providers/diagnosticSettings",
+                    "apiVersion": "2017-05-01-preview",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-aksilbs'))]",
+                        "[resourceId('Microsoft.OperationalInsights/workspaces',variables('LaName'))]"
+                    ],
+                    "properties": {
+                        "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces',variables('LaName'))]",
+                        "logs": [
+                            {
+                                "category": "NetworkSecurityGroupEvent",
+                                "enabled": true
+                            },
+                            {
+                                "category": "NetworkSecurityGroupRuleCounter",
+                                "enabled": true
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "[concat('nsg-', variables('clusterVNetName'), '-appgw')]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2020-05-01",
+            "location": "[parameters('location')]",
+            "comments": "NSG on the App Gateway subnet.",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "Allow443InBound",
+                        "properties": {
+                            "description": "Allow ALL web traffic into 443. (If you wanted to allow-list specific IPs, this is where you'd list them.)",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "Internet",
+                            "destinationPortRange": "443",
+                            "destinationAddressPrefix": "VirtualNetwork",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowControlPlaneInBound",
+                        "properties": {
+                            "description": "Allow Azure Control Plane in. (https://docs.microsoft.com/azure/application-gateway/configuration-infrastructure#network-security-groups)",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationPortRange": "65200-65535",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 110,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowHealthProbesInBound",
+                        "properties": {
+                            "description": "Allow Azure Health Probes in. (https://docs.microsoft.com/azure/application-gateway/configuration-infrastructure#network-security-groups)",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "AzureLoadBalancer",
+                            "destinationPortRange": "*",
+                            "destinationAddressPrefix": "VirtualNetwork",
+                            "access": "Allow",
+                            "priority": 120,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "DenyAllInBound",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationPortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "priority": 1000,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowAllOutBound",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationPortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1000,
+                            "direction": "Outbound"
+                        }
+                    }
+                ]
+            },
+            "resources": [
+                {
+                    "name": "Microsoft.Insights/toLA",
+                    "type": "providers/diagnosticSettings",
+                    "apiVersion": "2017-05-01-preview",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-appgw'))]",
+                        "[resourceId('Microsoft.OperationalInsights/workspaces',variables('LaName'))]"
+                    ],
+                    "properties": {
+                        "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces',variables('LaName'))]",
+                        "logs": [
+                            {
+                                "category": "NetworkSecurityGroupEvent",
+                                "enabled": true
+                            },
+                            {
+                                "category": "NetworkSecurityGroupRuleCounter",
+                                "enabled": true
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2020-05-01",
+            "name": "[variables('clusterVNetName')]",
+            "location": "[parameters('location')]",
+            "comments": "65,536 (-reserved) IPs available to the workload, split across two subnets for AKS and one for App Gateway.",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-appgw'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-nodepools'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-aksilbs'))]"
+            ],
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.240.0.0/16"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "snet-clusternodes",
+                        "properties": {
+                            "addressPrefix": "10.240.0.0/22",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-nodepools'))]"
+                            },
+                            "privateEndpointNetworkPolicies": "Disabled",
+                            "privateLinkServiceNetworkPolicies": "Enabled"
+                        }
+                    },
+                    {
+                        "name": "snet-clusteringressservices",
+                        "properties": {
+                            "addressPrefix": "10.240.4.0/28",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-aksilbs'))]"
+                            },
+                            "privateEndpointNetworkPolicies": "Disabled",
+                            "privateLinkServiceNetworkPolicies": "Disabled"
+                        }
+                    },
+                    {
+                        "name": "snet-applicationgateway",
+                        "properties": {
+                            "addressPrefix": "10.240.4.16/28",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-appgw'))]"
+                            },
+                            "privateEndpointNetworkPolicies": "Disabled",
+                            "privateLinkServiceNetworkPolicies": "Disabled"
+                        }
+                    }
+                ]
+            },
+            "resources": [
+                {
+                    "type": "providers/diagnosticSettings",
+                    "apiVersion": "2017-05-01-preview",
+                    "name": "Microsoft.Insights/toLA",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Network/virtualNetworks', variables('clusterVNetName'))]",
+                        "[resourceId('Microsoft.OperationalInsights/workspaces',variables('LaName'))]"
+                    ],
+                    "properties": {
+                        "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces',variables('LaName'))]",
+                        "metrics": [
+                            {
+                                "category": "AllMetrics",
+                                "enabled": true
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Microsoft.Network/publicIpAddresses",
+            "apiVersion": "2020-05-01",
+            "name": "[variables('primaryClusterPipName')]",
+            "location": "[parameters('location')]",
+            "comments": "Used as primary entry point for workload. Expected to be assigned to an Azure Application Gateway.",
+            "sku": {
+                "name": "Standard"
+            },
+            "properties": {
+                "publicIPAllocationMethod": "Static",
+                "idleTimeoutInMinutes": 4,
+                "publicIPAddressVersion": "IPv4"
+            }
+        },
+
         {
             "name": "[variables('clusterControlPlaneIdentityName')]",
             "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
@@ -172,7 +469,8 @@
             "location": "[parameters('location')]",
             "dependsOn": [
                 "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'mi-appgateway-frontend')]",
-                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'podmi-ingress-controller')]"
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'podmi-ingress-controller')]",
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('clusterVNetName'))]"
             ],
             "properties": {
                 "accessPolicies": [
@@ -217,7 +515,7 @@
                 "enabledForDeployment": false,
                 "enabledForDiskEncryption": false,
                 "enabledForTemplateDeployment": false,
-                "enableSoftDelete": true
+                "enableSoftDelete": false
             },
             "resources": [
                 {
@@ -291,7 +589,8 @@
             "name": "nodepools-to-akv",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"
+                "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('clusterVNetName'))]"
             ],
             "properties": {
                 "subnet": {
@@ -332,7 +631,7 @@
                 }
             ]
         },
-{
+        {
             "type": "Microsoft.Network/privateDnsZones",
             "apiVersion": "2020-06-01",
             "name": "[variables('acrPrivateDnsZonesName')]",
@@ -347,11 +646,12 @@
                     "location": "global",
                     "comments": "Enabling cluster vnet private zone DNS lookup - used by cluster vnet for direct DNS queries (ones not proxied via the hub).",
                     "dependsOn": [
-                        "[resourceId('Microsoft.Network/privateDnsZones', variables('acrPrivateDnsZonesName'))]"
+                        "[resourceId('Microsoft.Network/privateDnsZones', variables('acrPrivateDnsZonesName'))]",
+                        "[resourceId('Microsoft.Network/virtualNetworks', variables('clusterVNetName'))]"
                     ],
                     "properties": {
                         "virtualNetwork": {
-                            "id": "[parameters('targetVnetResourceId')]"
+                            "id": "[variables('targetVnetResourceId')]"
                         },
                         "registrationEnabled": false
                     }
@@ -377,7 +677,7 @@
                     ],
                     "properties": {
                         "virtualNetwork": {
-                            "id": "[parameters('targetVnetResourceId')]"
+                            "id": "[variables('targetVnetResourceId')]"
                         },
                         "registrationEnabled": false
                     }
@@ -396,7 +696,8 @@
                     "apiVersion": "2018-09-01",
                     "name": "bu0001a0008-00",
                     "dependsOn": [
-                        "[resourceId('Microsoft.Network/privateDnsZones', 'aks-ingress.contoso.com')]"
+                        "[resourceId('Microsoft.Network/privateDnsZones', 'aks-ingress.contoso.com')]",
+                        "[resourceId('Microsoft.Network/virtualNetworks', variables('clusterVNetName'))]"
                     ],
                     "properties": {
                         "ttl": 3600,
@@ -413,11 +714,12 @@
                     "name": "[concat('to_', variables('vnetName'))]",
                     "location": "global",
                     "dependsOn": [
-                        "[resourceId('Microsoft.Network/privateDnsZones', 'aks-ingress.contoso.com')]"
+                        "[resourceId('Microsoft.Network/privateDnsZones', 'aks-ingress.contoso.com')]",
+                        "[resourceId('Microsoft.Network/virtualNetworks', variables('clusterVNetName'))]"
                     ],
                     "properties": {
                         "virtualNetwork": {
-                            "id": "[parameters('targetVnetResourceId')]"
+                            "id": "[variables('targetVnetResourceId')]"
                         },
                         "registrationEnabled": false
                     }
@@ -426,11 +728,12 @@
         },
         {
             "type": "Microsoft.Network/applicationGateways",
-            "apiVersion": "2020-05-01",
+            "apiVersion": "2020-07-01",
             "name": "[variables('agwName')]",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName') )]"
+                "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName') )]",
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('clusterVNetName'))]"
             ],
             "identity": {
                 "type": "UserAssigned",
@@ -469,7 +772,7 @@
                         "name": "apw-ip-configuration",
                         "properties": {
                             "subnet": {
-                                "id": "[concat(parameters('targetVnetResourceId'), '/subnets/snet-applicationgateway')]"
+                                "id": "[concat(variables('targetVnetResourceId'), '/subnets/snet-applicationgateway')]"
                             }
                         }
                     }
@@ -479,7 +782,7 @@
                         "name": "apw-frontend-ip-configuration",
                         "properties": {
                             "PublicIPAddress": {
-                                "id": "[resourceId(subscription().subscriptionId, variables('vNetResourceGroup'), 'Microsoft.Network/publicIpAddresses', 'pip-BU0001A0008-00')]"
+                                "id": "[resourceId(subscription().subscriptionId, variables('vNetResourceGroup'), 'Microsoft.Network/publicIpAddresses', parameters('pip-name'))]"
                             }
                         }
                     }
@@ -507,6 +810,8 @@
                     {
                         "name": "[concat(variables('agwName'), '-ssl-certificate')]",
                         "properties": {
+                            //"password": "password", 
+                            //"data": "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"
                             "keyVaultSecretId": "[concat(reference(variables('keyVaultName')).vaultUri,'secrets/sslcert')]"
                         }
                     }
@@ -632,7 +937,8 @@
             "name": "EnsureClusterIdentityHasRbacToSelfManagedResources",
             "apiVersion": "2020-06-01",
             "dependsOn": [
-                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('clusterControlPlaneIdentityName'))]"
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('clusterControlPlaneIdentityName'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('clusterVNetName'))]"
             ],
             "resourceGroup": "[variables('vNetResourceGroup')]",
             "properties": {
@@ -674,7 +980,8 @@
             "name": "EnsureClusterUserAssignedHasRbacToManageVMSS",
             "apiVersion": "2017-05-10",
             "dependsOn": [
-                "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]"
+                "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('clusterVNetName'))]"
             ],
             "resourceGroup": "[variables('nodeResourceGroupName')]",
             "properties": {
@@ -715,7 +1022,8 @@
                     "apiVersion": "2020-08-01",
                     "name": "AllPrometheus",
                     "dependsOn": [
-                        "[concat('Microsoft.OperationalInsights/workspaces/', variables('logAnalyticsWorkspaceName'))]"
+                        "[concat('Microsoft.OperationalInsights/workspaces/', variables('logAnalyticsWorkspaceName'))]",
+                        "[resourceId('Microsoft.Network/virtualNetworks', variables('clusterVNetName'))]"
                     ],
                     "properties": {
                         "eTag": "*",
@@ -763,7 +1071,8 @@
             "apiVersion": "2018-04-16",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[resourceId('Microsoft.OperationsManagement/solutions',variables('containerInsightsSolutionName'))]"
+                "[resourceId('Microsoft.OperationsManagement/solutions',variables('containerInsightsSolutionName'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('clusterVNetName'))]"
             ],
             "properties": {
                 "description": "Alert on pod Failed phase.",
@@ -827,7 +1136,8 @@
             "name": "[variables('containerInsightsSolutionName')]",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName'))]"
+                "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('clusterVNetName'))]"
             ],
             "properties": {
                 "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName'))]"
@@ -845,7 +1155,8 @@
             "name": "[concat('AzureAppGatewayAnalytics(', variables('logAnalyticsWorkspaceName'),')')]",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName'))]"
+                "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('clusterVNetName'))]"
             ],
             "properties": {
                 "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName'))]"
@@ -863,7 +1174,8 @@
             "name": "[concat('KeyVaultAnalytics(', variables('logAnalyticsWorkspaceName'),')')]",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName'))]"
+                "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('clusterVNetName'))]"
             ],
             "properties": {
                 "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsWorkspaceName'))]"
@@ -973,7 +1285,8 @@
             "name": "nodepool-to-acr",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[resourceId('Microsoft.ContainerRegistry/registries/replications', variables('defaultAcrName'), parameters('geoRedundancyLocation'))]"
+                "[resourceId('Microsoft.ContainerRegistry/registries/replications', variables('defaultAcrName'), parameters('geoRedundancyLocation'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('clusterVNetName'))]"
             ],
             "properties": {
                 "subnet": {
@@ -1028,7 +1341,8 @@
                 "[resourceId('Microsoft.Authorization/policyAssignments', variables('policyAssignmentNameEnforceImageSource'))]",
                 "[resourceId('Microsoft.Authorization/policyAssignments', variables('policyAssignmentNameEnforceInternalLoadBalancers'))]",
                 "[resourceId('Microsoft.Authorization/policyAssignments', variables('policyAssignmentNameEnforceResourceLimits'))]",
-                "[resourceId('Microsoft.Authorization/policyAssignments', variables('policyAssignmentNameRoRootFilesystem'))]"
+                "[resourceId('Microsoft.Authorization/policyAssignments', variables('policyAssignmentNameRoRootFilesystem'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('clusterVNetName'))]"
             ],
             "properties": {
                 "kubernetesVersion": "[parameters('kubernetesVersion')]",
@@ -1119,7 +1433,7 @@
                 "networkProfile": {
                     "networkPlugin": "azure",
                     "networkPolicy": "azure",
-                    "outboundType": "userDefinedRouting",
+                    "outboundType": "loadBalancer",
                     "loadBalancerSku": "standard",
                     "loadBalancerProfile": "[json('null')]",
                     "serviceCidr": "172.16.0.0/16",
@@ -1157,7 +1471,7 @@
                     "authorizedIPRanges": "[parameters('clusterAuthorizedIPRanges')]",
                     "enablePrivateCluster": false
                 },
-                "podIdentityProfile": { 
+                "podIdentityProfile": {
                     "enabled": false, /* This feature is currently in preview and will eventually replace the aad-pod-identity configuration set up by hand in this reference implementation */
                     "userAssignedIdentities": [],
                     "userAssignedIdentityExceptions": []
@@ -1223,7 +1537,8 @@
             "name": "[concat('Node CPU utilization high for ', variables('clusterName'), ' CI-1')]",
             "dependsOn": [
                 "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]",
-                "[resourceId('Microsoft.OperationsManagement/solutions',variables('containerInsightsSolutionName'))]"
+                "[resourceId('Microsoft.OperationsManagement/solutions',variables('containerInsightsSolutionName'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('clusterVNetName'))]"
             ],
             "properties": {
                 "actions": [],

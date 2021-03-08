@@ -1,0 +1,67 @@
+
+az deployment group create -g rg-enterprise-networking-spokes -f networking/vnet.json -p location=westeurope -p namePrefix=tobbe
+
+az deployment group validate -g rg-enterprise-networking-spokes -f cluster-stamp.json --parameters .\azuredeploy.parameters.prod.json
+
+
+
+
+***************************
+**** PRERQ PREPP *****
+**** https://github.com/platonarash2/aks-secure-baseline/blob/main/03-aad.md
+***************************
+
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -out appgw.crt -keyout appgw.key -subj "/CN=bicycle.contoso.com/O=Contoso Bicycle"
+openssl pkcs12 -export -out appgw.pfx -in appgw.crt -inkey appgw.key -passout pass:foobar
+export APP_GATEWAY_LISTENER_CERTIFICATE=$(cat appgw.pfx | base64 | tr -d '\n')
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -out traefik-ingress-internal-aks-ingress-contoso-com-tls.crt -keyout traefik-ingress-internal-aks-ingress-contoso-com-tls.key -subj "/CN=*.aks-ingress.contoso.com/O=Contoso Aks Ingress"
+export AKS_INGRESS_CONTROLLER_CERTIFICATE_BASE64=$(cat traefik-ingress-internal-aks-ingress-contoso-com-tls.crt | base64 | tr -d '\n')
+
+
+1. Skapa AAD AKS cluster admin group: "dev-tobbe-cluster-admin"
+(Jonas, Peter, Arash)
+
+2. 
+TENANTID_AZURERBAC=$(az account show --query tenantId -o tsv)
+* 72f988bf-86f1-41af-91ab-2d7cd011db47
+
+3.
+az login -t <Replace-With-ClusterApi-AzureAD-TenantId> --allow-no-subscriptions
+* az login -t '72f988bf-86f1-41af-91ab-2d7cd011db47' --allow-no-subscriptions
+TENANTID_K8SRBAC=$(az account show --query tenantId -o tsv)
+*export AADOBJECTNAME_GROUP_CLUSTERADMIN=dev-tobbe-cluster-admin
+
+
+Behövs inte för att vi kan inte skapa users i AAD i microsoft
+//(export AADOBJECTID_GROUP_CLUSTERADMIN=$(az ad group create --display-name $AADOBJECTNAME_GROUP_CLUSTERADMIN --mail-nickname $AADOBJECTNAME_GROUP_CLUSTERADMIN --description "Principals in this group are cluster admins in the bu0001a000800 cluster." --query objectId -o tsv))
+
+
+export TENANTDOMAIN_K8SRBAC=$(az ad signed-in-user show --query 'userPrincipalName' -o tsv | cut -d '@' -f 2 | sed 's/\"//')
+* export AADOBJECTNAME_USER_CLUSTERADMIN=arash.rassoulpour
+//export AADOBJECTID_USER_CLUSTERADMIN=$(az ad user create --display-name=${AADOBJECTNAME_USER_CLUSTERADMIN} --user-principal-name ${AADOBJECTNAME_USER_CLUSTERADMIN}@${TENANTDOMAIN_K8SRBAC} --force-change-password-next-login --password ChangeMebu0001a0008AdminChangeMe --query objectId -o tsv)
+
+// get objectID for Arash.rassoulpour@microsoft.com = 88f1b1ac-573b-4a49-8b5a-e3511f68a7dc
+* export AADOBJECTID_USER_CLUSTERADMIN=88f1b1ac-573b-4a49-8b5a-e3511f68a7dc
+
+Lagt in AAD-Group-Guid i dessa filer (parameterisera):
+Edit C:\GitHub\aks-secure-baseline\cluster-manifests\cluster-rbac.yaml
+Edit C:\GitHub\aks-secure-baseline\cluster-manifests\cluster-baseline-settings\rbac.yaml
+91dc8d80-00be-4962-b980-121b7ca6e73c är AAD grupp objektid: dev-tobbe-cluster-admin
+
+
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -out appgw.crt -keyout appgw.key -subj "/CN=bicycle.contoso.com/O=Contoso Bicycle"
+openssl pkcs12 -export -out appgw.pfx -in appgw.crt -inkey appgw.key -passout pass:password
+
+Edit: C:\GitHub\aks-secure-baseline\azuredeploy.parameters.prod.json
+echo $APP_GATEWAY_LISTENER_CERTIFICATE
+
+  "appGatewayListenerCertificate": {
+      "value": "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¨"
+    },
+
+
+Edit: C:\GitHub\aks-secure-baseline\azuredeploy.parameters.prod.json
+echo $AKS_INGRESS_CONTROLLER_CERTIFICATE_BASE64
+ "aksIngressControllerCertificate": {
+      "value": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURaVENDQWsyZ0F3SUJBZ0lVU2lJYk1nc1VMMG5nVUpUeHVRWS9IVUFZTFpjd0RRWUpLb1pJaHZjTkFRRUwKQlFBd1FqRWlNQ0FHQTFVRUF3d1pLaTVoYTNNdGFXNW5jbVZ6Y3k1amIyNTBiM052TG1OdmJURWNNQm9HQTFVRQpDZ3dUUTI5dWRHOXpieUJCYTNNZ1NXNW5jbVZ6Y3pBZUZ3MHlNVEF6TURNeE16TTJOVEZhRncweU1qQXpNRE14Ck16TTJOVEZhTUVJeElqQWdCZ05WQkFNTUdTb3VZV3R6TFdsdVozSmxjM011WTI5dWRHOXpieTVqYjIweEhEQWEKQmdOVkJBb01FME52Ym5SdmMyOGdRV3R6SUVsdVozSmxjM013Z2dFaU1BMEdDU3FHU0liM0RRRUJBUVVBQTRJQgpEd0F3Z2dFS0FvSUJBUURnOFU5cmlTUlVYK0t4UDBNMlRRNjN3dXpjaDdXRmZmNFVnMlhQa09keTV0WVRtUWdsCjZWMHBPbkRHOWpHb2x6TXFTRFJUdlpFZlhBMGVFdDNjN2MrTUZ5MlE1YnhzZExvMnJxQURhclFCanhuSDdLbDEKSnhiZmErRU0vcm0rdkx0eWQyaWE4NE5YWVpCMktRVHRiY3plRXBGRThielM3bVBxV2NrRnFFOGlQRnBJeUVtZgpHY2djWDFsV2VFc0N0cDR6QjBQSHdCMVhEb2I3N3Z5MklUQmdNcVpMaWtpKzFmVVRoODZwdTUzdFMvK083anFtCmFNOXVScFVCZjMxWG9OcHpSa25UQjNtTDcyeUtYR0EybGdtOWtkWUFOSHlsMG1YZ1dxYjdTaThhT2VZaURlMGsKNDl2Q1YwU2cwcENKZjdZRm5TbTJMem55WkVwWE9wYVBTNk1iQWdNQkFBR2pVekJSTUIwR0ExVWREZ1FXQkJTLwpLejBBZmVTczZPbzhxVitxTzR6YWx3T3hSVEFmQmdOVkhTTUVHREFXZ0JTL0t6MEFmZVNzNk9vOHFWK3FPNHphCmx3T3hSVEFQQmdOVkhSTUJBZjhFQlRBREFRSC9NQTBHQ1NxR1NJYjNEUUVCQ3dVQUE0SUJBUUJWMUF3aWpoRkQKcUhTZmM3eUVRWHpYTVNKamFRaTViZDFhRDZmMVVzSklnbWNlMGs5VTZud3JaWmxZYXBpNkVQRjZDZ0x4YVo5VAptR3p3dFAzT2QyQzczR1RabUhtK24yTzlnVG5DOXdMR1B3NDZPeGRJK0xDNEt4NnVwUXhzaDJpSmgvNEdFeWN4CktZNHIwVkMzcE1OZDJJemJ2QkhYTEthdnEwbUN0WFFJNDYvWFBKSzJkZVpSOTBqcytJcWo5N0R2TkN1c3FLUTAKRG81VUY5REttN0NmZlBlSE5jRytja0xzTzFDekRveW83aU5VMDUreTZ0ZTZLSWdadlhidUpmWGVqd0t0RFMvegpOZFlmeGhIZlJUUlovY0lGTUN6Uy9TeGFUYTB0VnFrYmNPcmZ2TWszWkNteHJBek4zTkRsckxHT0R1dVltam9LCmpCbWlSSFNtYVhmcQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg=="
+    },
