@@ -130,10 +130,11 @@
         "subRgUniqueString": "[uniqueString('aks', subscription().subscriptionId, resourceGroup().id)]",
 
         "nodeResourceGroupName": "[concat('rg-', variables('clusterName'), '-nodepools')]",
-        "clusterName": "[concat('aks-', variables('subRgUniqueString'))]",
+        //"clusterName": "[concat('aks-', variables('subRgUniqueString'))]",
+        "clusterName": "pelithne",
         "logAnalyticsWorkspaceName": "[uniqueString('wrkspc-', resourceGroup().id)]",
         "containerInsightsSolutionName": "[concat('ContainerInsights(', variables('logAnalyticsWorkspaceName'),')')]",
-        "defaultAcrName": "[concat('acraks2', variables('subRgUniqueString'))]",
+        "defaultAcrName": "pelithne-tobbe-acr",
 
         //"vNetResourceGroup": "[split(variables('targetVnetResourceId'),'/')[4]]",
         //"vnetName": "[split(variables('targetVnetResourceId'),'/')[8]]",
