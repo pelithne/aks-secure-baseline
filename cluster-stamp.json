@@ -9,12 +9,6 @@
                 "description": "Name of the Public IP"
             }
         },
-        "pip-name": {
-            "type": "string",
-            "metadata": {
-                "description": "Name of the Public IP"
-            }
-        },
         "keyVaultName": {
             "type": "string",
             "metadata": {
