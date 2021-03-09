@@ -113,7 +113,7 @@
     },
     "variables": {
 
-        "targetVnetResourceId": "[concat('/subscriptions/', subscription().subscriptionId ,'/resourceGroups/', resourceGroup().name,'/providers/Microsoft.Network/virtualNetworks/', 'vnet-', parameters('namePrefix'))]",
+        // "targetVnetResourceId": "[concat('/subscriptions/', subscription().subscriptionId ,'/resourceGroups/', resourceGroup().name,'/providers/Microsoft.Network/virtualNetworks/', 'vnet-', parameters('namePrefix'))]",
 
 
         "clusterVNetName": "[concat('vnet-', parameters('namePrefix'))]",
@@ -135,10 +135,10 @@
         "containerInsightsSolutionName": "[concat('ContainerInsights(', variables('logAnalyticsWorkspaceName'),')')]",
         "defaultAcrName": "[concat('acraks2', variables('subRgUniqueString'))]",
 
-        "vNetResourceGroup": "[split(variables('targetVnetResourceId'),'/')[4]]",
-        "vnetName": "[split(variables('targetVnetResourceId'),'/')[8]]",
-        "vnetNodePoolSubnetResourceId": "[concat(variables('targetVnetResourceId'), '/subnets/snet-clusternodes')]",
-        "vnetIngressServicesSubnetResourceId": "[concat(variables('targetVnetResourceId'), '/subnets/snet-cluster-ingressservices')]",
+        //"vNetResourceGroup": "[split(variables('targetVnetResourceId'),'/')[4]]",
+        //"vnetName": "[split(variables('targetVnetResourceId'),'/')[8]]",
+        //"vnetNodePoolSubnetResourceId": "[concat(variables('targetVnetResourceId'), '/subnets/snet-clusternodes')]",
+        //"vnetIngressServicesSubnetResourceId": "[concat(variables('targetVnetResourceId'), '/subnets/snet-cluster-ingressservices')]",
 
         "agwName": "[concat('apw-', variables('clusterName'))]",
         "apwResourceId": "[resourceId('Microsoft.Network/applicationGateways', variables('agwName'))]",
@@ -642,7 +642,7 @@
                 {
                     "type": "virtualNetworkLinks",
                     "apiVersion": "2020-06-01",
-                    "name": "[concat('to_', variables('vnetName'))]",
+                    "name": "[concat('to_', variables('clusterVNetName'))]",
                     "location": "global",
                     "comments": "Enabling cluster vnet private zone DNS lookup - used by cluster vnet for direct DNS queries (ones not proxied via the hub).",
                     "dependsOn": [
@@ -651,7 +651,7 @@
                     ],
                     "properties": {
                         "virtualNetwork": {
-                            "id": "[variables('targetVnetResourceId')]"
+                            "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('clusterVNetName'))]"
                         },
                         "registrationEnabled": false
                     }
@@ -669,7 +669,7 @@
                 {
                     "type": "virtualNetworkLinks",
                     "apiVersion": "2020-06-01",
-                    "name": "[concat('to_', variables('vnetName'))]",
+                    "name": "[concat('to_', variables('clusterVNetName'))]",
                     "location": "global",
                     "comments": "Enabling Azure Key Vault Private Link on cluster vnet.",
                     "dependsOn": [
@@ -677,7 +677,7 @@
                     ],
                     "properties": {
                         "virtualNetwork": {
-                            "id": "[variables('targetVnetResourceId')]"
+                            "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('clusterVNetName'))]"
                         },
                         "registrationEnabled": false
                     }
@@ -711,7 +711,7 @@
                 {
                     "type": "virtualNetworkLinks",
                     "apiVersion": "2020-06-01",
-                    "name": "[concat('to_', variables('vnetName'))]",
+                    "name": "[concat('to_', variables('clusterVNetName'))]",
                     "location": "global",
                     "dependsOn": [
                         "[resourceId('Microsoft.Network/privateDnsZones', 'aks-ingress.contoso.com')]",
@@ -719,7 +719,7 @@
                     ],
                     "properties": {
                         "virtualNetwork": {
-                            "id": "[variables('targetVnetResourceId')]"
+                            "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('clusterVNetName'))]"
                         },
                         "registrationEnabled": false
                     }
@@ -772,7 +772,7 @@
                         "name": "apw-ip-configuration",
                         "properties": {
                             "subnet": {
-                                "id": "[concat(variables('targetVnetResourceId'), '/subnets/snet-applicationgateway')]"
+                                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('clusterVNetName')), '/subnets/snet-applicationgateway')]"
                             }
                         }
                     }
@@ -782,7 +782,7 @@
                         "name": "apw-frontend-ip-configuration",
                         "properties": {
                             "PublicIPAddress": {
-                                "id": "[resourceId(subscription().subscriptionId, variables('vNetResourceGroup'), 'Microsoft.Network/publicIpAddresses', parameters('pip-name'))]"
+                                "id": "[resourceId(subscription().subscriptionId, 'tmp2', 'Microsoft.Network/publicIpAddresses', parameters('pip-name'))]"
                             }
                         }
                     }
