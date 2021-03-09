@@ -7,8 +7,8 @@ trigger:
 - main
 
 pool:
-  #vmImage: ubuntu-latest
-  name: 'SurfsUp'
+  vmImage: ubuntu-latest
+  #name: 'SurfsUp'
 
 
 variables:
