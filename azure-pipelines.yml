@@ -8,7 +8,7 @@ trigger:
 
 pool:
   #vmImage: ubuntu-latest
-  name: 'LinuxPrivate'
+  name: 'SurfsUp'
 
 
 variables:
