@@ -112,6 +112,7 @@
 
         "clusterVNetName": "[concat('vnet-', parameters('namePrefix'))]",
         "primaryClusterPipName": "[concat('pip-', parameters('namePrefix'))]",
+        //"appgwPipName": "[concat('appgw-pip-', parameters('namePrefix'))]",
         "LaName": "[concat('la-', parameters('location'), '-', parameters('namePrefix'), '-', uniqueString(resourceId('Microsoft.Network/virtualNetworks', parameters('namePrefix'))))]",
 
         "networkContributorRole": "[concat(subscription().Id, '/providers/Microsoft.Authorization/roleDefinitions/4d97b98b-1d4f-4787-a291-c67834d212e7')]",
@@ -776,7 +777,7 @@
                         "name": "apw-frontend-ip-configuration",
                         "properties": {
                             "PublicIPAddress": {
-                                "id": "[resourceId(subscription().subscriptionId, variables('vNetResourceGroup'), 'Microsoft.Network/publicIpAddresses', parameters('pip-name'))]"
+                                "id": "[resourceId(subscription().subscriptionId, variables('vNetResourceGroup'), 'Microsoft.Network/publicIpAddresses', variables('primaryClusterPipName'))]"
                             }
                         }
                     }
