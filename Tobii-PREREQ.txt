@@ -10,4 +10,6 @@
 4. DEV certifikat som gäller för Tobii assisierat med en development Tobii domän: pfx, cer
 5. Ändrat outboundType till "loadBalancer" i ARM i cluster-stamp.json - https://docs.microsoft.com/en-us/azure/templates/microsoft.containerservice/2020-12-01/managedclusters
 6. Azure DevOps: Se till att service connection har rättigheter "Contributor" och "User Access Administrator" i Subscription (inte bara resursgruppen) då AKS klustret måste skapa resursgrupp för noder och skriver in role assignements
-7. 
+7. a) Lägg till en bygg maskin i VNETet med en System Managed Identity
+   b) Lägg till Roll assignements (AcrPush) till ACR med byggserverns System Managed Identity
+    
