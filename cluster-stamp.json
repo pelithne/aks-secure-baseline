@@ -1345,12 +1345,12 @@
                 "agentPoolProfiles": [
                     {
                         "name": "npsystem",
-                        "count": 3,
+                        "count": 1,
                         "vmSize": "Standard_DS2_v2",
                         "osDiskSizeGB": 80,
                         "osDiskType": "Ephemeral",
                         "osType": "Linux",
-                        "minCount": 3,
+                        "minCount": 1,
                         "maxCount": 4,
                         "vnetSubnetID": "[variables('vnetNodePoolSubnetResourceId')]",
                         "enableAutoScaling": true,
