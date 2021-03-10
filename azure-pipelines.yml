@@ -37,7 +37,7 @@ steps:
 
 
 
-#    # Set the AKS cluster context
+#    # Set the AKS cluster context edit
 #    - name: Set the AKS cluster context
 #      uses: Azure/aks-set-context@v1
 #      if: github.event_name == 'push'
