@@ -6,7 +6,7 @@ pool:
 
 variables:
   RESOURCE_GROUP_LOCATION: 'westeurope'                              # The location where the resource group is going to be created
-  RESOURCE_GROUP: 'tmp3'                                           # The name for the AKS cluster resource group
+  RESOURCE_GROUP: 'tmp2'                                           # The name for the AKS cluster resource group
   AKS_LOCATION: 'westeurope'                                        # The location where the AKS cluster is going to be deployed
   GEO_REDUNDANCY_LOCATION: 'canadaeast'                              # The location for Azure resources that support native geo-redunancy. Should be different than the location parameter and ideally should be a paired region - https://docs.microsoft.com/en-us/azure/best-practices-availability-paired-regions. This region does not need to support availability zones.
   K8S_RBAC_AAD_PROFILE_TENANTID: '72f988bf-86f1-41af-91ab-2d7cd011db47'          # The tenant to integrate AKS-managed Azure AD
@@ -16,7 +16,7 @@ variables:
   AKS_INGRESS_CONTROLLER_CERTIFICATE_BASE64: 'LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURaVENDQWsyZ0F3SUJBZ0lVU2lJYk1nc1VMMG5nVUpUeHVRWS9IVUFZTFpjd0RRWUpLb1pJaHZjTkFRRUwKQlFBd1FqRWlNQ0FHQTFVRUF3d1pLaTVoYTNNdGFXNW5jbVZ6Y3k1amIyNTBiM052TG1OdmJURWNNQm9HQTFVRQpDZ3dUUTI5dWRHOXpieUJCYTNNZ1NXNW5jbVZ6Y3pBZUZ3MHlNVEF6TURNeE16TTJOVEZhRncweU1qQXpNRE14Ck16TTJOVEZhTUVJeElqQWdCZ05WQkFNTUdTb3VZV3R6TFdsdVozSmxjM011WTI5dWRHOXpieTVqYjIweEhEQWEKQmdOVkJBb01FME52Ym5SdmMyOGdRV3R6SUVsdVozSmxjM013Z2dFaU1BMEdDU3FHU0liM0RRRUJBUVVBQTRJQgpEd0F3Z2dFS0FvSUJBUURnOFU5cmlTUlVYK0t4UDBNMlRRNjN3dXpjaDdXRmZmNFVnMlhQa09keTV0WVRtUWdsCjZWMHBPbkRHOWpHb2x6TXFTRFJUdlpFZlhBMGVFdDNjN2MrTUZ5MlE1YnhzZExvMnJxQURhclFCanhuSDdLbDEKSnhiZmErRU0vcm0rdkx0eWQyaWE4NE5YWVpCMktRVHRiY3plRXBGRThielM3bVBxV2NrRnFFOGlQRnBJeUVtZgpHY2djWDFsV2VFc0N0cDR6QjBQSHdCMVhEb2I3N3Z5MklUQmdNcVpMaWtpKzFmVVRoODZwdTUzdFMvK083anFtCmFNOXVScFVCZjMxWG9OcHpSa25UQjNtTDcyeUtYR0EybGdtOWtkWUFOSHlsMG1YZ1dxYjdTaThhT2VZaURlMGsKNDl2Q1YwU2cwcENKZjdZRm5TbTJMem55WkVwWE9wYVBTNk1iQWdNQkFBR2pVekJSTUIwR0ExVWREZ1FXQkJTLwpLejBBZmVTczZPbzhxVitxTzR6YWx3T3hSVEFmQmdOVkhTTUVHREFXZ0JTL0t6MEFmZVNzNk9vOHFWK3FPNHphCmx3T3hSVEFQQmdOVkhSTUJBZjhFQlRBREFRSC9NQTBHQ1NxR1NJYjNEUUVCQ3dVQUE0SUJBUUJWMUF3aWpoRkQKcUhTZmM3eUVRWHpYTVNKamFRaTViZDFhRDZmMVVzSklnbWNlMGs5VTZud3JaWmxZYXBpNkVQRjZDZ0x4YVo5VAptR3p3dFAzT2QyQzczR1RabUhtK24yTzlnVG5DOXdMR1B3NDZPeGRJK0xDNEt4NnVwUXhzaDJpSmgvNEdFeWN4CktZNHIwVkMzcE1OZDJJemJ2QkhYTEthdnEwbUN0WFFJNDYvWFBKSzJkZVpSOTBqcytJcWo5N0R2TkN1c3FLUTAKRG81VUY5REttN0NmZlBlSE5jRytja0xzTzFDekRveW83aU5VMDUreTZ0ZTZLSWdadlhidUpmWGVqd0t0RFMvegpOZFlmeGhIZlJUUlovY0lGTUN6Uy9TeGFUYTB0VnFrYmNPcmZ2TWszWkNteHJBek4zTkRsckxHT0R1dVltam9LCmpCbWlSSFNtYVhmcQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg=='
   NAME_PREFIX: 'pelithne2'
   #PIP_NAME: 'pelithne'
-  KEYVAULT_NAME: 'pelithne-akv2'
+  KEYVAULT_NAME: 'pelithne-akv3'
 
 
 
@@ -43,7 +43,7 @@ steps:
     azureResourceManagerConnection: 'azdo-sub-contributor'
     subscriptionId: '6f66105f-d352-482f-970b-a1d2a478fb64'
     action: 'Create Or Update Resource Group'
-    resourceGroupName: 'tmp3'
+    resourceGroupName: 'tmp2'
     location: 'West Europe'
     templateLocation: 'Linked artifact'
     csmFile: 'cluster-stamp.json'
