@@ -22,7 +22,8 @@ variables:
 
 
 steps:
-#- task: AzureResourceManagerTemplateDeployment@3
+# edit
+#- task: AzureResourceManagerTemplateDeployment@3 
 #  inputs:
 #    deploymentScope: 'Resource Group'
 #    azureResourceManagerConnection: 'pelithne-sp-azcli'
