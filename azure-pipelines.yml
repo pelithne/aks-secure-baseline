@@ -25,7 +25,7 @@ steps:
 - task: AzureResourceManagerTemplateDeployment@3
   inputs:
     deploymentScope: 'Resource Group'
-    azureResourceManagerConnection: 'pelithne-az-sp'
+    azureResourceManagerConnection: 'pelithne-azure-msi'
     subscriptionId: '6f66105f-d352-482f-970b-a1d2a478fb64'
     action: 'Create Or Update Resource Group'
     resourceGroupName: 'tmp2'
@@ -37,7 +37,7 @@ steps:
 
 
 
-#    # Set the AKS cluster context edit
+#    # Set the AKS cluster context
 #    - name: Set the AKS cluster context
 #      uses: Azure/aks-set-context@v1
 #      if: github.event_name == 'push'
