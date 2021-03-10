@@ -25,7 +25,7 @@ steps:
 - task: AzureResourceManagerTemplateDeployment@3
   inputs:
     deploymentScope: 'Resource Group'
-    azureResourceManagerConnection: 'pelithne-sp-azcli'
+    azureResourceManagerConnection: 'pelithne-az-sp'
     subscriptionId: '6f66105f-d352-482f-970b-a1d2a478fb64'
     action: 'Create Or Update Resource Group'
     resourceGroupName: 'tmp2'
