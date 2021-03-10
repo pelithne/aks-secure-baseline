@@ -1210,7 +1210,7 @@
                         "status": "enabled"
                     }
                 },
-                "publicNetworkAccess": "Disabled",
+                "publicNetworkAccess": "Enabled",
                 "encryption": {
                     "status": "disabled"
                 },
