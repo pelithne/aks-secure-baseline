@@ -5,12 +5,12 @@ set -e
 
 # Cluster Parameters. Some NEEDS to be updated manually.
 LOCATION='canadacentral'
-RGNAMECLUSTER='tobbe12345'
-RGNAMESPOKES='tobbe12345'
+RGNAMECLUSTER='tobbe123456'
+RGNAMESPOKES='tobbe123456'
 TENANT_ID='72f988bf-86f1-41af-91ab-2d7cd011db47'
 MAIN_SUBSCRIPTION='e9aac0f0-83bd-43cf-ab35-c8e3eccc8932'
 
-AKS_DEPLOYMENT_NAME='cluster-stamp-20210311-170823-ad4f'
+AKS_DEPLOYMENT_NAME='cluster-stamp-20210311-185348-4bc6'
 AKS_CLUSTER_NAME=$(az deployment group show -g $RGNAMECLUSTER -n $AKS_DEPLOYMENT_NAME --query properties.outputs.aksClusterName.value -o tsv)
 TRAEFIK_USER_ASSIGNED_IDENTITY_RESOURCE_ID=$(az deployment group show -g $RGNAMECLUSTER -n $AKS_DEPLOYMENT_NAME --query properties.outputs.aksIngressControllerPodManagedIdentityResourceId.value -o tsv)
 TRAEFIK_USER_ASSIGNED_IDENTITY_CLIENT_ID=$(az deployment group show -g $RGNAMECLUSTER -n $AKS_DEPLOYMENT_NAME --query properties.outputs.aksIngressControllerPodManagedIdentityClientId.value -o tsv)
@@ -45,15 +45,18 @@ az keyvault certificate import --vault-name $KEYVAULT_NAME -f traefik-ingress-in
 # attach to AKS cluster and create namespace for traefik
 az aks get-credentials -n ${AKS_CLUSTER_NAME} -g ${RGNAMECLUSTER} --admin
 
-kubectl create namespace traefik
-kubectl create namespace cluster-baseline-settings
-
-# Apply manifests for "pod identity" and "csi"
-kubectl apply -f $SCRIPT_PATH/cluster-manifests/cluster-baseline-settings/
-#kubectl apply -f $SCRIPT_PATH/cluster-manifests/cluster-baseline-settings/aad-pod-identity.yaml
-#kubectl apply -f $SCRIPT_PATH/cluster-manifests/cluster-baseline-settings/akv-secrets-store-csi.yaml
+kubectl apply -f $SCRIPT_PATH/cluster-manifests/cluster-baseline-settings/ns-cluster-baseline-settings.yaml
+kubectl apply -f $SCRIPT_PATH/cluster-manifests/cluster-baseline-settings/ns-traefik.yaml
+kubectl apply -f $SCRIPT_PATH/cluster-manifests/cluster-baseline-settings/ns-app.yaml
 
 sleep 5
+
+# Apply manifests for "pod identity" and "csi"
+#kubectl apply -f $SCRIPT_PATH/cluster-manifests/cluster-baseline-settings/
+kubectl apply -f $SCRIPT_PATH/cluster-manifests/cluster-baseline-settings/aad-pod-identity.yaml
+kubectl apply -f $SCRIPT_PATH/cluster-manifests/cluster-baseline-settings/akv-secrets-store-csi.yaml
+
+
 
 # Create pod-identity resources in AKS cluster
 cat <<EOF | kubectl apply -f -
@@ -109,7 +112,7 @@ kubectl apply -f $SCRIPT_PATH/workload/traefik.yaml
 kubectl apply -f $SCRIPT_PATH/workload/aspnetapp.yaml
 
 echo 'the ASPNET Core webapp sample is all setup. Wait until is ready to process requests running'
-kubectl wait --namespace traefik \
+kubectl wait --namespace app \
   --for=condition=ready pod \
   --selector=app.kubernetes.io/name=aspnetapp \
   --timeout=90s

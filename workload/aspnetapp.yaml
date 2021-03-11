@@ -7,7 +7,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: aspnetapp-deployment
-  namespace: default
+  namespace: app
   labels:
     app.kubernetes.io/name: aspnetapp
 spec:
@@ -75,7 +75,7 @@ apiVersion: policy/v1beta1
 kind: PodDisruptionBudget
 metadata:
   name: aspnetapp-pdb
-  namespace: default
+  namespace: app
 spec:
   minAvailable: 75%
   selector:
@@ -86,7 +86,7 @@ kind: Service
 apiVersion: v1
 metadata:
   name: aspnetapp-service
-  namespace: default
+  namespace: app
 spec:
   selector:
     app.kubernetes.io/name: aspnetapp
@@ -99,7 +99,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: aspnetapp-ingress
-  namespace: default
+  namespace: app
   annotations:
     kubernetes.io/ingress.allow-http: "false"
     # defines controller implementing this ingress resource: https://docs.microsoft.com/en-us/azure/dev-spaces/how-to/ingress-https-traefik
