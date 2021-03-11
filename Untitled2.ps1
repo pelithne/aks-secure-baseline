@@ -1,0 +1,1 @@
+﻿Export-AppServiceCertificate -loginId arrass@microsoft.com -subscriptionId 'e9aac0f0-83bd-43cf-ab35-c8e3eccc8932' -resourceGroupName test4 -name tobbetobbepro
