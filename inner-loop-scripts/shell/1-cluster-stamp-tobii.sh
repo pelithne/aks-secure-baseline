@@ -5,15 +5,11 @@ set -e
 
 # Cluster Parameters.
 LOCATION='canadacentral'
-RGNAMECLUSTER='tobbe'
-RGNAMESPOKES='tobbe'
+RGNAMECLUSTER='tobbe1234'
+RGNAMESPOKES='tobbe1234'
 TENANT_ID='72f988bf-86f1-41af-91ab-2d7cd011db47'
 MAIN_SUBSCRIPTION='e9aac0f0-83bd-43cf-ab35-c8e3eccc8932'
-#TARGET_VNET_RESOURCE_ID=$6
-#K8S_RBAC_AAD_ADMIN_GROUP_OBJECTID=$7
-#K8S_RBAC_AAD_PROFILE_TENANTID=$8
-#AKS_ENDUSER_NAME=$9
-#AKS_ENDUSER_PASSWORD=${10}
+
 SCRIPT_PATH='/home/peter/tobii/aks-secure-baseline'
 
 
@@ -31,7 +27,7 @@ SCRIPT_PATH='/home/peter/tobii/aks-secure-baseline'
 #openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
 #        -out appgw.crt \
 #        -keyout appgw.key \
-#        -subj "/CN=bicycle.contoso.com/O=Contoso Bicycle"
+#        -subj "/CN=tobbetobbepro.com/O=Tobbe Pro"
 #openssl pkcs12 -export -out appgw.pfx -in appgw.crt -inkey appgw.key -passout pass:
 #APP_GATEWAY_LISTENER_CERTIFICATE=$(cat appgw.pfx | base64 | tr -d '\n')
 
@@ -42,75 +38,35 @@ SCRIPT_PATH='/home/peter/tobii/aks-secure-baseline'
 #        -subj "/CN=*.aks-ingress.contoso.com/O=Contoso Aks Ingress"
 #AKS_INGRESS_CONTROLLER_CERTIFICATE_BASE64=$(cat traefik-ingress-internal-aks-ingress-contoso-com-tls.crt | base64 | tr -d '\n')
 
-# AKS Cluster Creation. Advance Networking. AAD identity integration. This might take about 10 minutes
-# Note: By default, this deployment will allow unrestricted access to your cluster's API Server.
-#   You should limit access to the API Server to a set of well-known IP addresses (i.,e. your hub firewall IP, bastion subnet, build agents, or any other networks you'll administer the cluster from),
-#   and can do so by adding a `clusterAuthorizedIPRanges=['range1', 'range2', 'AzureFirewallIP/32']` parameter below.
-#az deployment group create --resource-group "${RGNAMECLUSTER}" --template-file "../../cluster-stamp.json" --name "cluster-0001" --parameters \
-#               location=$LOCATION \
-#               geoRedundancyLocation=$GEOREDUNDANCY_LOCATION \
-#               targetVnetResourceId=$TARGET_VNET_RESOURCE_ID \
-#               clusterAdminAadGroupObjectId=$K8S_RBAC_AAD_ADMIN_GROUP_OBJECTID \
-#               k8sControlPlaneAuthorizationTenantId=$K8S_RBAC_AAD_PROFILE_TENANTID \
-#               appGatewayListenerCertificate=$APP_GATEWAY_LISTENER_CERTIFICATE \
-#               aksIngressControllerCertificate=$AKS_INGRESS_CONTROLLER_CERTIFICATE_BASE64
 
-AKS_DEPLOYMENT_NAME='cluster-stamp-20210311-122413-b820'
+
+# Needs to be manually changed before running the script
+AKS_DEPLOYMENT_NAME='cluster-stamp-20210311-164445-105c'
 AKS_CLUSTER_NAME=$(az deployment group show -g $RGNAMECLUSTER -n $AKS_DEPLOYMENT_NAME --query properties.outputs.aksClusterName.value -o tsv)
 TRAEFIK_USER_ASSIGNED_IDENTITY_RESOURCE_ID=$(az deployment group show -g $RGNAMECLUSTER -n $AKS_DEPLOYMENT_NAME --query properties.outputs.aksIngressControllerPodManagedIdentityResourceId.value -o tsv)
 TRAEFIK_USER_ASSIGNED_IDENTITY_CLIENT_ID=$(az deployment group show -g $RGNAMECLUSTER -n $AKS_DEPLOYMENT_NAME --query properties.outputs.aksIngressControllerPodManagedIdentityClientId.value -o tsv)
 KEYVAULT_NAME=$(az deployment group show -g $RGNAMECLUSTER -n $AKS_DEPLOYMENT_NAME --query properties.outputs.keyVaultName.value -o tsv)
 APPGW_PUBLIC_IP=$(az deployment group show -g $RGNAMESPOKES -n $AKS_DEPLOYMENT_NAME --query properties.outputs.appGwPublicIpAddress.value -o tsv)
 
+# allow cert import for current user
 az keyvault set-policy --certificate-permissions import get -n $KEYVAULT_NAME --upn $(az account show --query user.name -o tsv)
 
+# Use created cert files to "create" ingress cert
 cat traefik-ingress-internal-aks-ingress-contoso-com-tls.crt traefik-ingress-internal-aks-ingress-contoso-com-tls.key > traefik-ingress-internal-aks-ingress-contoso-com-tls.pem
 az keyvault certificate import --vault-name $KEYVAULT_NAME -f traefik-ingress-internal-aks-ingress-contoso-com-tls.pem -n traefik-ingress-internal-aks-ingress-contoso-com-tls
 
+# attach to AKS cluster and create namespace for traefik
 az aks get-credentials -n ${AKS_CLUSTER_NAME} -g ${RGNAMECLUSTER} --admin
-kubectl delete namespace a0008
 kubectl create namespace a0008
+kubectl create namespace cluster-baseline-settings
 
-#kubectl create namespace cluster-baseline-settings
-#kubectl apply -f ../../cluster-manifests/cluster-baseline-settings/flux.yaml
-#kubectl wait --namespace cluster-baseline-settings --for=condition=ready pod --selector=app.kubernetes.io/name=flux --timeout=90s
-
-#echo ""
-#echo "# Creating AAD Groups and users for the created cluster"
-#echo ""
-
-# We are going to use a the new tenant which manage the cluster identity
-#az login --allow-no-subscriptions -t $TENANT_ID
-
-#Creating AAD groups which will be associated to k8s out of the box cluster roles
-#k8sClusterAdminAadGroupName="k8s-cluster-admin-clusterrole-${AKS_CLUSTER_NAME}"
-#k8sClusterAdminAadGroup=$(az ad group create --display-name ${k8sClusterAdminAadGroupName} --mail-nickname ${k8sClusterAdminAadGroupName} --query objectId -o tsv)
-#k8sAdminAadGroupName="k8s-admin-clusterrole-${AKS_CLUSTER_NAME}"
-#k8sAdminAadGroup=$(az ad group create --display-name ${k8sAdminAadGroupName} --mail-nickname ${k8sAdminAadGroupName} --query objectId -o tsv)
-#k8sEditAadGroupName="k8s-edit-clusterrole-${AKS_CLUSTER_NAME}"
-#k8sEditAadGroup=$(az ad group create --display-name ${k8sEditAadGroupName} --mail-nickname ${k8sEditAadGroupName} --query objectId -o tsv)
-#k8sViewAadGroupName="k8s-view-clusterrole-${AKS_CLUSTER_NAME}"
-#k8sViewAadGroup=$(az ad group create --display-name ${k8sViewAadGroupName} --mail-nickname ${k8sViewAadGroupName} --query objectId -o tsv)
-
-#EXAMPLE of an User in View Group
-#AKS_ENDUSR_OBJECTID=$(az ad user create --display-name $AKS_ENDUSER_NAME --user-principal-name $AKS_ENDUSER_NAME --force-change-password-next-login --password $AKS_ENDUSER_PASSWORD --query objectId -o tsv)
-#az ad group member add --group k8s-view-clusterrole --member-id $AKS_ENDUSR_OBJECTID
-
-# Deploy application
-
-#az login
-#az account set -s  $MAIN_SUBSCRIPTION
-
-# unset errexit as per https://github.com/mspnp/aks-secure-baseline/issues/69
-set +e
-echo $'Ensure Flux has created the following namespace and then press Ctrl-C'
-
-kubectl get ns a0008 --watch
-kubectl apply -f $SCRIPT_PATH/cluster-manifests/cluster-baseline-settings/
+# Apply manifests for "pod identity" and "csi"
+# kubectl apply -f $SCRIPT_PATH/cluster-manifests/cluster-baseline-settings/
 kubectl apply -f $SCRIPT_PATH/cluster-manifests/cluster-baseline-settings/aad-pod-identity.yaml
 kubectl apply -f $SCRIPT_PATH/cluster-manifests/cluster-baseline-settings/akv-secrets-store-csi.yaml
 
 
+# Create pod-identity resources in AKS cluster
 cat <<EOF | kubectl apply -f -
 apiVersion: "aadpodidentity.k8s.io/v1"
 kind: AzureIdentity
@@ -157,7 +113,10 @@ spec:
 EOF
 
 
+# Start traefik (using fixed internal IP, which is known by AppGW)
 kubectl apply -f $SCRIPT_PATH/workload/traefik.yaml
+
+# Optionally, set up an example workload
 kubectl apply -f $SCRIPT_PATH/workload/aspnetapp.yaml
 
 echo 'the ASPNET Core webapp sample is all setup. Wait until is ready to process requests running'
