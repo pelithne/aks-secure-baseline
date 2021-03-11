@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#set -e
+set -e
 
 # This script might take about 10 minutes
 
@@ -14,14 +14,14 @@ MAIN_SUBSCRIPTION='e9aac0f0-83bd-43cf-ab35-c8e3eccc8932'
 #K8S_RBAC_AAD_PROFILE_TENANTID=$8
 #AKS_ENDUSER_NAME=$9
 #AKS_ENDUSER_PASSWORD=${10}
-PATH='/home/peter/tobii/aks-secure-baseline'
+SCRIPT_PATH='/home/peter/tobii/aks-secure-baseline'
 
 
 # Used for services that support native geo-redundancy (Azure Container Registry)
 # Ideally should be the paired region of $LOCATION
 
-az login
-az account set -s $MAIN_SUBSCRIPTION
+#az login
+#az account set -s $MAIN_SUBSCRIPTION
 
 #echo ""
 #echo "# Deploying AKS Cluster"
@@ -68,6 +68,7 @@ cat traefik-ingress-internal-aks-ingress-contoso-com-tls.crt traefik-ingress-int
 az keyvault certificate import --vault-name $KEYVAULT_NAME -f traefik-ingress-internal-aks-ingress-contoso-com-tls.pem -n traefik-ingress-internal-aks-ingress-contoso-com-tls
 
 az aks get-credentials -n ${AKS_CLUSTER_NAME} -g ${RGNAMECLUSTER} --admin
+kubectl delete namespace a0008
 kubectl create namespace a0008
 
 #kubectl create namespace cluster-baseline-settings
@@ -103,9 +104,11 @@ kubectl create namespace a0008
 # unset errexit as per https://github.com/mspnp/aks-secure-baseline/issues/69
 set +e
 echo $'Ensure Flux has created the following namespace and then press Ctrl-C'
-kubectl get ns a0008 --watch
 
-kubectl apply -f $PATH/cluster-manifests/cluster-baseline-settings/aad-pod-identity.yaml
+kubectl get ns a0008 --watch
+kubectl apply -f $SCRIPT_PATH/cluster-manifests/cluster-baseline-settings/
+kubectl apply -f $SCRIPT_PATH/cluster-manifests/cluster-baseline-settings/aad-pod-identity.yaml
+kubectl apply -f $SCRIPT_PATH/cluster-manifests/cluster-baseline-settings/akv-secrets-store-csi.yaml
 
 
 cat <<EOF | kubectl apply -f -
@@ -154,8 +157,8 @@ spec:
 EOF
 
 
-kubectl apply -f $PATH/workload/traefik.yaml
-kubectl apply -f $PATH/workload/aspnetapp.yaml
+kubectl apply -f $SCRIPT_PATH/workload/traefik.yaml
+kubectl apply -f $SCRIPT_PATH/workload/aspnetapp.yaml
 
 echo 'the ASPNET Core webapp sample is all setup. Wait until is ready to process requests running'
 kubectl wait --namespace a0008 \
