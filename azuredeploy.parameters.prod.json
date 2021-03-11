@@ -3,22 +3,22 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "namePrefix": {
-      "value": "tobbe2"     
+      "value": "pelithne"     
     },
     "location": {
       "value": "westeurope"
     },
     "pip-name": {
-      "value": "pip-tobbe2"
+      "value": "pip-pelithne"
     },
     "keyVaultName": {
-      "value": "akv-tobbe-346"
+      "value": "akv-pelithne"
     },
     "geoRedundancyLocation": {
       "value": "northeurope"
     },    
     "clusterAdminAadGroupObjectId": {
-      "value": "91dc8d80-00be-4962-b980-121b7ca6e73c"
+      "value": "13eb3a24-1ca2-4455-a1c5-140d41fd5485"
     },
     "k8sControlPlaneAuthorizationTenantId": {
       "value": "72f988bf-86f1-41af-91ab-2d7cd011db47"

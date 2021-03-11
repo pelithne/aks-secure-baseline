@@ -1191,7 +1191,12 @@
                 "name": "Premium"
             },
             "properties": {
-                "adminUserEnabled": false,                
+                "adminUserEnabled": false,
+                "networkRuleSet": {
+                    "defaultAction": "Allow",
+                    "virtualNetworkRules": [],
+                    "ipRules": []
+                },
                 "policies": {
                     "quarantinePolicy": {
                         "status": "disabled"
@@ -1269,54 +1274,6 @@
                 }
             ]
         },
-        // {
-        //     "type": "Microsoft.Network/privateEndpoints",
-        //     "apiVersion": "2020-05-01",
-        //     "name": "nodepool-to-acr",
-        //     "location": "[parameters('location')]",
-        //     "dependsOn": [
-        //         "[resourceId('Microsoft.ContainerRegistry/registries/replications', variables('defaultAcrName'), parameters('geoRedundancyLocation'))]",
-        //         "[resourceId('Microsoft.Network/virtualNetworks', variables('clusterVNetName'))]"
-        //     ],
-        //     "properties": {
-        //         "subnet": {
-        //             "id": "[variables('vnetNodePoolSubnetResourceId')]"
-        //         },
-        //         "privateLinkServiceConnections": [
-        //             {
-        //                 "name": "nodepools",
-        //                 "properties": {
-        //                     "privateLinkServiceId": "[resourceId('Microsoft.ContainerRegistry/registries', variables('defaultAcrName'))]",
-        //                     "groupIds": [
-        //                         "registry"
-        //                     ]
-        //                 }
-        //             }
-        //         ]
-        //     },
-        //     "resources": [
-        //         {
-        //             "type": "privateDnsZoneGroups",
-        //             "apiVersion": "2020-05-01",
-        //             "name": "default",
-        //             "location": "[parameters('location')]",
-        //             "dependsOn": [
-        //                 "[resourceId('Microsoft.Network/privateEndpoints', 'nodepool-to-acr')]",
-        //                 "[resourceId('Microsoft.Network/privateDnsZones', variables('acrPrivateDnsZonesName'))]"
-        //             ],
-        //             "properties": {
-        //                 "privateDnsZoneConfigs": [
-        //                     {
-        //                         "name": "privatelink-azurecr-io",
-        //                         "properties": {
-        //                             "privateDnsZoneId": "[resourceId('Microsoft.Network/privateDnsZones', variables('acrPrivateDnsZonesName'))]"
-        //                         }
-        //                     }
-        //                 ]
-        //             }
-        //         }
-        //     ]
-        // },
         {
             "type": "Microsoft.ContainerService/managedClusters",
             "apiVersion": "2020-12-01",
