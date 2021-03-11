@@ -1191,8 +1191,7 @@
                 "name": "Premium"
             },
             "properties": {
-                "adminUserEnabled": false
-                },
+                "adminUserEnabled": false,                
                 "policies": {
                     "quarantinePolicy": {
                         "status": "disabled"
