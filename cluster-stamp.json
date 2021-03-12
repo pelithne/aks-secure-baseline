@@ -2,7 +2,12 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "0.0.0.5",
     "parameters": {
-
+        "domainName": {
+          "type": "string",
+            "metadata": {
+                "description": "Name of the Public Domain"
+            }
+        },
         "namePrefix": {
             "type": "string",
             "metadata": {
@@ -873,7 +878,7 @@
                             "sslCertificate": {
                                 "id": "[concat(variables('apwResourceId'), '/sslCertificates/', variables('agwName'), '-ssl-certificate')]"
                             },
-                            "hostName": "bicycle.contoso.com",
+                            "hostName": "[parameters('domainName')]",
                             "hostNames": [
                             ],
                             "requireServerNameIndication": true
