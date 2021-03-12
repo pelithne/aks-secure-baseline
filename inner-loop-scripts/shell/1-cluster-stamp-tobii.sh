@@ -5,12 +5,12 @@ set -e
 
 # Cluster Parameters. Some NEEDS to be updated manually.
 LOCATION='canadacentral'
-RGNAMECLUSTER='tobbe123456'
-RGNAMESPOKES='tobbe123456'
+RGNAMECLUSTER='tobbe1234567'
+RGNAMESPOKES='tobbe1234567'
 TENANT_ID='72f988bf-86f1-41af-91ab-2d7cd011db47'
 MAIN_SUBSCRIPTION='e9aac0f0-83bd-43cf-ab35-c8e3eccc8932'
 
-AKS_DEPLOYMENT_NAME='cluster-stamp-20210311-185348-4bc6'
+AKS_DEPLOYMENT_NAME='cluster-stamp-20210311-204529-5110'
 AKS_CLUSTER_NAME=$(az deployment group show -g $RGNAMECLUSTER -n $AKS_DEPLOYMENT_NAME --query properties.outputs.aksClusterName.value -o tsv)
 TRAEFIK_USER_ASSIGNED_IDENTITY_RESOURCE_ID=$(az deployment group show -g $RGNAMECLUSTER -n $AKS_DEPLOYMENT_NAME --query properties.outputs.aksIngressControllerPodManagedIdentityResourceId.value -o tsv)
 TRAEFIK_USER_ASSIGNED_IDENTITY_CLIENT_ID=$(az deployment group show -g $RGNAMECLUSTER -n $AKS_DEPLOYMENT_NAME --query properties.outputs.aksIngressControllerPodManagedIdentityClientId.value -o tsv)
@@ -32,8 +32,13 @@ SCRIPT_PATH='/home/peter/tobii/aks-secure-baseline'
 #        -out traefik-ingress-internal-aks-ingress-contoso-com-tls.crt \
 #        -keyout traefik-ingress-internal-aks-ingress-contoso-com-tls.key \
 #        -subj "/CN=*.aks-ingress.contoso.com/O=Contoso Aks Ingress"
-#AKS_INGRESS_CONTROLLER_CERTIFICATE_BASE64=$(cat traefik-ingress-internal-aks-ingress-contoso-com-tls.crt | base64 | tr -d '\n')
+#AKS_INGRESS_CONTROLLER_CERTIFICATE_BASE64=$(cat traefik-ingress-internal-aks-ingress-contoso-com-tls.crt | base64 | tr -d '\
 
+#From manual instructions, as reference, with changed URL
+#openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+#         -out traefik-ingress-internal-aks-ingress-contoso-com-tls.crt \
+#         -keyout traefik-ingress-internal-aks-ingress-contoso-com-tls.key \
+#         -subj "/CN=*.aks-ingress.tobbetobbepro.com/O=Contoso Aks Ingress"
 
 # allow cert import for current user
 az keyvault set-policy --certificate-permissions import get -n $KEYVAULT_NAME --upn $(az account show --query user.name -o tsv)
@@ -45,18 +50,17 @@ az keyvault certificate import --vault-name $KEYVAULT_NAME -f traefik-ingress-in
 # attach to AKS cluster and create namespace for traefik
 az aks get-credentials -n ${AKS_CLUSTER_NAME} -g ${RGNAMECLUSTER} --admin
 
+# Create namespaces
 kubectl apply -f $SCRIPT_PATH/cluster-manifests/cluster-baseline-settings/ns-cluster-baseline-settings.yaml
 kubectl apply -f $SCRIPT_PATH/cluster-manifests/cluster-baseline-settings/ns-traefik.yaml
 kubectl apply -f $SCRIPT_PATH/cluster-manifests/cluster-baseline-settings/ns-app.yaml
 
-sleep 5
+sleep 1
 
 # Apply manifests for "pod identity" and "csi"
 #kubectl apply -f $SCRIPT_PATH/cluster-manifests/cluster-baseline-settings/
 kubectl apply -f $SCRIPT_PATH/cluster-manifests/cluster-baseline-settings/aad-pod-identity.yaml
 kubectl apply -f $SCRIPT_PATH/cluster-manifests/cluster-baseline-settings/akv-secrets-store-csi.yaml
-
-
 
 # Create pod-identity resources in AKS cluster
 cat <<EOF | kubectl apply -f -
@@ -103,7 +107,6 @@ spec:
           objectType: secret
     tenantId: "${TENANT_ID}"
 EOF
-
 
 # Start traefik (using fixed internal IP, which is known by AppGW)
 kubectl apply -f $SCRIPT_PATH/workload/traefik.yaml
