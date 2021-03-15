@@ -99,7 +99,8 @@ data:
       level = "ERROR"
       format = "json"
     [api]
-      dashboard = false
+      dashboard = true
+      insecure = true
     [providers]
       # Configuration reload frequency:
       #   * duration that Traefik waits for, after a configuration reload, before taking into account any new configuration refresh event
