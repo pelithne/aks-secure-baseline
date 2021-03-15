@@ -131,7 +131,7 @@
 
         "nodeResourceGroupName": "[concat('rg-', variables('clusterName'), '-nodepools')]",
         "clusterName": "[concat('aks-', variables('subRgUniqueString'))]",
-        "logAnalyticsWorkspaceName": "[concat('log-', uniqueString('wrkspc-', resourceGroup().id)]",
+        "logAnalyticsWorkspaceName": "[concat('log-', uniqueString('wrkspc-', resourceGroup().id))]",
         "containerInsightsSolutionName": "[concat('ContainerInsights(', variables('logAnalyticsWorkspaceName'),')')]",
         "defaultAcrName": "[concat('acraks2', variables('subRgUniqueString'))]",
 
