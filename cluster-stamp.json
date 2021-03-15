@@ -117,9 +117,6 @@
 
         "clusterVNetName": "[concat('vnet-', parameters('namePrefix'))]",
         "primaryClusterPipName": "[concat('pip-', parameters('namePrefix'))]",
-        //"appgwPipName": "[concat('appgw-pip-', parameters('namePrefix'))]",
-        //"LaName": "[concat('la-', parameters('location'), '-', parameters('namePrefix'), '-', uniqueString(resourceId('Microsoft.Network/virtualNetworks', parameters('namePrefix'))))]",
-
         "networkContributorRole": "[concat(subscription().Id, '/providers/Microsoft.Authorization/roleDefinitions/4d97b98b-1d4f-4787-a291-c67834d212e7')]",
         "monitoringMetricsPublisherRole": "[concat(subscription().Id, '/providers/Microsoft.Authorization/roleDefinitions/3913510d-42f4-4e42-8a64-420c390055eb')]",
         "acrPullRole": "[concat(subscription().Id, '/providers/Microsoft.Authorization/roleDefinitions/7f951dda-4ed3-4680-a7ca-43fe172d538d')]",
@@ -133,7 +130,7 @@
         "clusterName": "[concat('aks-', variables('subRgUniqueString'))]",
         "logAnalyticsWorkspaceName": "[concat('log-', uniqueString('wrkspc-', resourceGroup().id))]",
         "containerInsightsSolutionName": "[concat('ContainerInsights(', variables('logAnalyticsWorkspaceName'),')')]",
-        "defaultAcrName": "[concat('acraks2', variables('subRgUniqueString'))]",
+        "defaultAcrName": "[concat('acr-aks-', variables('subRgUniqueString'))]",
 
         "vNetResourceGroup": "[split(variables('targetVnetResourceId'),'/')[4]]",
         "vnetName": "[split(variables('targetVnetResourceId'),'/')[8]]",
@@ -164,22 +161,6 @@
         "policyAssignmentNameEnforceImageSource": "[guid(variables('policyResourceIdEnforceImageSource'), resourceGroup().name, variables('clusterName'))]"
     },
     "resources": [
-
-        // {
-        //     "type": "Microsoft.OperationalInsights/workspaces",
-        //     "apiVersion": "2020-08-01",
-        //     "name": "[variables('LaName')]",
-        //     "location": "[parameters('location')]",
-        //     "comments": "This Log Analytics workspace stores logs",
-        //     "properties": {
-        //         "sku": {
-        //             "name": "PerGB2018"
-        //         },
-        //         "retentionInDays": 30,
-        //         "publicNetworkAccessForIngestion": "Enabled",
-        //         "publicNetworkAccessForQuery": "Enabled"
-        //     }
-        // },
         {
             "type": "Microsoft.Network/networkSecurityGroups",
             "apiVersion": "2020-05-01",
