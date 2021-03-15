@@ -117,9 +117,6 @@
 
         "clusterVNetName": "[concat('vnet-', parameters('namePrefix'))]",
         "primaryClusterPipName": "[concat('pip-', parameters('namePrefix'))]",
-        //"appgwPipName": "[concat('appgw-pip-', parameters('namePrefix'))]",
-        "LaName": "[concat('la-', parameters('location'), '-', parameters('namePrefix'), '-', uniqueString(resourceId('Microsoft.Network/virtualNetworks', parameters('namePrefix'))))]",
-
         "networkContributorRole": "[concat(subscription().Id, '/providers/Microsoft.Authorization/roleDefinitions/4d97b98b-1d4f-4787-a291-c67834d212e7')]",
         "monitoringMetricsPublisherRole": "[concat(subscription().Id, '/providers/Microsoft.Authorization/roleDefinitions/3913510d-42f4-4e42-8a64-420c390055eb')]",
         "acrPullRole": "[concat(subscription().Id, '/providers/Microsoft.Authorization/roleDefinitions/7f951dda-4ed3-4680-a7ca-43fe172d538d')]",
@@ -131,9 +128,9 @@
 
         "nodeResourceGroupName": "[concat('rg-', variables('clusterName'), '-nodepools')]",
         "clusterName": "[concat('aks-', variables('subRgUniqueString'))]",
-        "logAnalyticsWorkspaceName": "[uniqueString('wrkspc-', resourceGroup().id)]",
+        "logAnalyticsWorkspaceName": "[concat('log-', uniqueString('wrkspc-', resourceGroup().id))]",
         "containerInsightsSolutionName": "[concat('ContainerInsights(', variables('logAnalyticsWorkspaceName'),')')]",
-        "defaultAcrName": "[concat('acraks2', variables('subRgUniqueString'))]",
+        "defaultAcrName": "[concat('acraks', variables('subRgUniqueString'))]",
 
         "vNetResourceGroup": "[split(variables('targetVnetResourceId'),'/')[4]]",
         "vnetName": "[split(variables('targetVnetResourceId'),'/')[8]]",
@@ -164,22 +161,6 @@
         "policyAssignmentNameEnforceImageSource": "[guid(variables('policyResourceIdEnforceImageSource'), resourceGroup().name, variables('clusterName'))]"
     },
     "resources": [
-
-        {
-            "type": "Microsoft.OperationalInsights/workspaces",
-            "apiVersion": "2020-08-01",
-            "name": "[variables('LaName')]",
-            "location": "[parameters('location')]",
-            "comments": "This Log Analytics workspace stores logs",
-            "properties": {
-                "sku": {
-                    "name": "PerGB2018"
-                },
-                "retentionInDays": 30,
-                "publicNetworkAccessForIngestion": "Enabled",
-                "publicNetworkAccessForQuery": "Enabled"
-            }
-        },
         {
             "type": "Microsoft.Network/networkSecurityGroups",
             "apiVersion": "2020-05-01",
@@ -196,10 +177,10 @@
                     "name": "Microsoft.Insights/toLA",
                     "dependsOn": [
                         "[resourceId('Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-nodepools'))]",
-                        "[resourceId('Microsoft.OperationalInsights/workspaces',variables('LaName'))]"
+                        "[resourceId('Microsoft.OperationalInsights/workspaces',variables('logAnalyticsWorkspaceName'))]"
                     ],
                     "properties": {
-                        "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces',variables('LaName'))]",
+                        "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces',variables('logAnalyticsWorkspaceName'))]",
                         "logs": [
                             {
                                 "category": "NetworkSecurityGroupEvent",
@@ -230,10 +211,10 @@
                     "apiVersion": "2017-05-01-preview",
                     "dependsOn": [
                         "[resourceId('Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-aksilbs'))]",
-                        "[resourceId('Microsoft.OperationalInsights/workspaces',variables('LaName'))]"
+                        "[resourceId('Microsoft.OperationalInsights/workspaces',variables('logAnalyticsWorkspaceName'))]"
                     ],
                     "properties": {
-                        "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces',variables('LaName'))]",
+                        "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces',variables('logAnalyticsWorkspaceName'))]",
                         "logs": [
                             {
                                 "category": "NetworkSecurityGroupEvent",
@@ -333,10 +314,10 @@
                     "apiVersion": "2017-05-01-preview",
                     "dependsOn": [
                         "[resourceId('Microsoft.Network/networkSecurityGroups', concat('nsg-', variables('clusterVNetName'), '-appgw'))]",
-                        "[resourceId('Microsoft.OperationalInsights/workspaces',variables('LaName'))]"
+                        "[resourceId('Microsoft.OperationalInsights/workspaces',variables('logAnalyticsWorkspaceName'))]"
                     ],
                     "properties": {
-                        "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces',variables('LaName'))]",
+                        "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces',variables('logAnalyticsWorkspaceName'))]",
                         "logs": [
                             {
                                 "category": "NetworkSecurityGroupEvent",
@@ -411,10 +392,10 @@
                     "name": "Microsoft.Insights/toLA",
                     "dependsOn": [
                         "[resourceId('Microsoft.Network/virtualNetworks', variables('clusterVNetName'))]",
-                        "[resourceId('Microsoft.OperationalInsights/workspaces',variables('LaName'))]"
+                        "[resourceId('Microsoft.OperationalInsights/workspaces',variables('logAnalyticsWorkspaceName'))]"
                     ],
                     "properties": {
-                        "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces',variables('LaName'))]",
+                        "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces',variables('logAnalyticsWorkspaceName'))]",
                         "metrics": [
                             {
                                 "category": "AllMetrics",

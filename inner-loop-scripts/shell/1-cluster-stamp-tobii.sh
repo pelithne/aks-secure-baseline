@@ -3,21 +3,25 @@
 # Stop exection if command fails
 set -e
 
+SCRIPT_PATH=$PWD
+
 # Cluster Parameters. Some NEEDS to be updated manually.
 LOCATION='canadacentral'
-RGNAMECLUSTER='tobbenew5'
-RGNAMESPOKES='tobbenew5'
+RGNAMECLUSTER='tobbenew7'
+RGNAMESPOKES='tobbenew7'
 TENANT_ID='72f988bf-86f1-41af-91ab-2d7cd011db47'
 MAIN_SUBSCRIPTION='e9aac0f0-83bd-43cf-ab35-c8e3eccc8932'
+AKS_DEPLOYMENT_NAME='cluster-stamp-20210315-160728-8245'  
 
-AKS_DEPLOYMENT_NAME='cluster-stamp-20210312-134418-c6c3'  
+
 AKS_CLUSTER_NAME=$(az deployment group show -g $RGNAMECLUSTER -n $AKS_DEPLOYMENT_NAME --query properties.outputs.aksClusterName.value -o tsv)
 TRAEFIK_USER_ASSIGNED_IDENTITY_RESOURCE_ID=$(az deployment group show -g $RGNAMECLUSTER -n $AKS_DEPLOYMENT_NAME --query properties.outputs.aksIngressControllerPodManagedIdentityResourceId.value -o tsv)
 TRAEFIK_USER_ASSIGNED_IDENTITY_CLIENT_ID=$(az deployment group show -g $RGNAMECLUSTER -n $AKS_DEPLOYMENT_NAME --query properties.outputs.aksIngressControllerPodManagedIdentityClientId.value -o tsv)
 KEYVAULT_NAME=$(az deployment group show -g $RGNAMECLUSTER -n $AKS_DEPLOYMENT_NAME --query properties.outputs.keyVaultName.value -o tsv)
 APPGW_PUBLIC_IP=$(az deployment group show -g $RGNAMESPOKES -n $AKS_DEPLOYMENT_NAME --query properties.outputs.appGwPublicIpAddress.value -o tsv)
 
-SCRIPT_PATH='/home/peter/tobii/aks-secure-baseline'
+
+az account set -s $MAIN_SUBSCRIPTION
 
 # App Gateway Certificate
 #openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
@@ -59,9 +63,9 @@ kubectl apply -f $SCRIPT_PATH/cluster-manifests/cluster-baseline-settings/ns-app
 kubectl apply -f $SCRIPT_PATH/cluster-manifests/cluster-baseline-settings/rbac.yaml
 kubectl apply -f $SCRIPT_PATH/cluster-manifests/cluster-baseline-settings/kured.yaml
 kubectl apply -f $SCRIPT_PATH/cluster-manifests/cluster-baseline-settings/aad-pod-identity.yaml
-echo "good night"
+
 sleep 5 # TODO: wait for resource AzurePodIdentityException has been created
-echo "done sleeping..."
+
 kubectl apply -f $SCRIPT_PATH/cluster-manifests/cluster-baseline-settings/aad-pod-identity-2.yaml
 kubectl apply -f $SCRIPT_PATH/cluster-manifests/cluster-baseline-settings/akv-secrets-store-csi.yaml
 
