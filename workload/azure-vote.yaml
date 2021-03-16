@@ -64,7 +64,7 @@ spec:
         agentpool: npuser01
       containers:
       - name: azure-vote-front
-        image: acraks2lneqo64bokkzc.azurecr.io/azvote:574
+        image: acraksdcgc7riuhygky.azurecr.io/azvote:574
         ports:
         - containerPort: 80
         resources:
