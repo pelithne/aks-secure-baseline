@@ -52,7 +52,7 @@ stages:
     displayName: Deploy
     pool:
       vmImage: $(vmImageName)
-    environment: 'AKSTobbe10'
+    environment: 'AKSTobbe10_2'
     strategy:
       runOnce:
         deploy:
