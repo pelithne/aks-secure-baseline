@@ -14,6 +14,12 @@
                 "description": "Name of the Public IP"
             }
         },
+        "aksNodepoolResourceGroupName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name AKS nodepool Resource Group"
+            }
+        },
         "keyVaultName": {
             "type": "string",
             "metadata": {
@@ -126,7 +132,8 @@
 
         "subRgUniqueString": "[uniqueString('aks', subscription().subscriptionId, resourceGroup().id)]",
 
-        "nodeResourceGroupName": "[concat('rg-', variables('clusterName'), '-nodepools')]",
+        //"nodeResourceGroupName": "[concat('rg-', variables('clusterName'), '-nodepools')]",
+        "nodeResourceGroupName": "[parameters('aksNodepoolResourceGroupName')]",
         "clusterName": "[concat('aks-', variables('subRgUniqueString'))]",
         "logAnalyticsWorkspaceName": "[concat('log-', uniqueString('wrkspc-', resourceGroup().id))]",
         "containerInsightsSolutionName": "[concat('ContainerInsights(', variables('logAnalyticsWorkspaceName'),')')]",

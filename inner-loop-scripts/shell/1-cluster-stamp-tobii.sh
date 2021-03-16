@@ -127,5 +127,5 @@ kubectl wait --namespace app \
   --selector=app.kubernetes.io/name=aspnetapp \
   --timeout=90s
 echo 'you must see the EXTERNAL-IP 10.240.4.4, please wait till it is ready. It takes a some minutes, then cntr+c'
-kubectl get svc -n a0008 --watch  -n a0008
+kubectl get svc -n a0008 --watch 
 
