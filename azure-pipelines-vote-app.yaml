@@ -11,9 +11,9 @@ resources:
 variables:
 
   # Container registry service connection established during pipeline creation
-  dockerRegistryServiceConnection: 'b533f0bd-81d7-4a7b-bac1-c26fe159a1da'
+  dockerRegistryServiceConnection: 'ACRConnectionTobbe10'
   imageRepository: 'azvote'
-  containerRegistry: 'acraks2lneqo64bokkzc.azurecr.io'
+  containerRegistry: 'acraksdcgc7riuhygky.azurecr.io'
   dockerfilePath: '**/Dockerfile'
   tag: '$(Build.BuildId)'
   imagePullSecret: 'acraks2lneqo64bokkzc1573a865-auth'
@@ -52,7 +52,7 @@ stages:
     displayName: Deploy
     pool:
       vmImage: $(vmImageName)
-    environment: 'tobbe-4215.a0008'
+    environment: 'AKSTobbe10'
     strategy:
       runOnce:
         deploy:
