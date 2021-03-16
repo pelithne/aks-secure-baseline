@@ -31,7 +31,8 @@ steps:
 - task: AzureResourceManagerTemplateDeployment@3
   inputs:
     deploymentScope: 'Resource Group'
-    azureResourceManagerConnection: 'TobbeConnection'
+    #azureResourceManagerConnection: 'TobbeConnection'
+    azureResourceManagerConnection: 'TobbeMIDevOps'
     subscriptionId: 'e9aac0f0-83bd-43cf-ab35-c8e3eccc8932'
     action: 'Create Or Update Resource Group'
     resourceGroupName: $(RESOURCE_GROUP)
