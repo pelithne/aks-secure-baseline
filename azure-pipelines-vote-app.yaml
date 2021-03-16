@@ -62,6 +62,6 @@ stages:
             inputs:
               action: deploy
               manifests: |
-                $(Pipeline.Workspace)/azure-vote-all-in-one-redis.yaml
+                $(Pipeline.Workspace)/workload/azure-vote.yaml
               containers: |
                 $(containerRegistry)/$(imageRepository):$(tag)
