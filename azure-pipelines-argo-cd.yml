@@ -25,16 +25,16 @@ stages:
         runOnce:
           deploy:
             steps:
-            - task: Kubernetes@1
-              displayName: Create ArgoCD namespace
-              inputs:
-                connectionType: Azure Resource Manager
-                azureSubscriptionEndpoint: $(azureSubscriptionEndpoint)
-                azureResourceGroup: $(azureResourceGroup)
-                kubernetesCluster: $(kubernetesCluster)
-                useClusterAdmin: true
-                command: create
-                arguments: namespace $(argocdNamespace)
+            # - task: Kubernetes@1
+            #   displayName: Create ArgoCD namespace
+            #   inputs:
+            #     connectionType: Azure Resource Manager
+            #     azureSubscriptionEndpoint: $(azureSubscriptionEndpoint)
+            #     azureResourceGroup: $(azureResourceGroup)
+            #     kubernetesCluster: $(kubernetesCluster)
+            #     useClusterAdmin: true
+            #     command: create 
+            #     arguments: namespace $(argocdNamespace)
             - task: Kubernetes@1
               displayName: Create ArgoCD namespace
               inputs:
@@ -45,4 +45,4 @@ stages:
                 useClusterAdmin: true
                 command: apply
                 namespace: $(argocdNamespace)
-                arguments: -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+                arguments: -f  argo-cd.yml
