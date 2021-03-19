@@ -6,9 +6,9 @@ trigger:
   
  
 variables:
-  azureSubscriptionEndpoint: azureConnection
-  azureResourceGroup: rg-aks-argo
-  kubernetesCluster: aksargo
+  azureSubscriptionEndpoint: TobbeConnection
+  azureResourceGroup: tobbenew12
+  kubernetesCluster: aks-qvdxj7ic2yrz4
   vmImageName: 'ubuntu-latest'
   argocdNamespace: argocd
  
