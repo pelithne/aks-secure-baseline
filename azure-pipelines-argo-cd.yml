@@ -36,7 +36,7 @@ stages:
             #     command: create 
             #     arguments: namespace $(argocdNamespace)
             - task: Kubernetes@1
-              displayName: Create ArgoCD namespace
+              displayName: Create ArgoCD 
               inputs:
                 connectionType: Azure Resource Manager
                 azureSubscriptionEndpoint: $(azureSubscriptionEndpoint)
@@ -45,4 +45,4 @@ stages:
                 useClusterAdmin: true
                 command: apply
                 namespace: $(argocdNamespace)
-                arguments: -f  './workload/argo-cd.yml'
+                arguments: -f  'workload/argo-cd.yml'
