@@ -45,4 +45,4 @@ stages:
                 useClusterAdmin: true
                 command: apply
                 namespace: $(argocdNamespace)
-                arguments: -f  './workload/argo-cd.yml'
+                arguments: -f  'workload/argo-cd.yml'
