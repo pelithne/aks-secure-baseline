@@ -1,0 +1,48 @@
+trigger:
+- main
+ 
+#resources:
+#- repo: self
+  
+ 
+variables:
+  azureSubscriptionEndpoint: azureConnection
+  azureResourceGroup: rg-aks-argo
+  kubernetesCluster: aksargo
+  vmImageName: 'ubuntu-latest'
+  argocdNamespace: argocd
+ 
+stages:
+- stage: Install 
+  displayName: Install stage
+  jobs:
+    - deployment: Deploy
+      displayName: Deploy ArgoCD
+      pool:
+        vmImage: 'ubuntu-latest'
+      environment: development
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+            - task: Kubernetes@1
+              displayName: Create ArgoCD namespace
+              inputs:
+                connectionType: Azure Resource Manager
+                azureSubscriptionEndpoint: $(azureSubscriptionEndpoint)
+                azureResourceGroup: $(azureResourceGroup)
+                kubernetesCluster: $(kubernetesCluster)
+                useClusterAdmin: true
+                command: create
+                arguments: namespace $(argocdNamespace)
+            - task: Kubernetes@1
+              displayName: Create ArgoCD namespace
+              inputs:
+                connectionType: Azure Resource Manager
+                azureSubscriptionEndpoint: $(azureSubscriptionEndpoint)
+                azureResourceGroup: $(azureResourceGroup)
+                kubernetesCluster: $(kubernetesCluster)
+                useClusterAdmin: true
+                command: apply
+                namespace: $(argocdNamespace)
+                arguments: -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
